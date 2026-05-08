@@ -7,8 +7,6 @@ import { LoadingDots } from "./components/ui/LoadingDots";
 import { useHotkey } from "./hooks/useHotkey";
 import { useWindowDrag } from "./hooks/useWindowDrag";
 import { useAudioRecording } from "./hooks/useAudioRecording";
-import { useAuth } from "./hooks/useAuth";
-
 // Sound Wave Icon Component (for idle/hover states)
 const SoundWaveIcon = ({ size = 16 }) => {
   return (
@@ -78,8 +76,6 @@ export default function App() {
   const { t } = useTranslation();
   const { hotkey } = useHotkey();
   const { isDragging, handleMouseDown, handleMouseUp } = useWindowDrag();
-  const { isSignedIn } = useAuth();
-
   const [dragStartPos, setDragStartPos] = useState(null);
   const [hasDragged, setHasDragged] = useState(false);
 
@@ -164,15 +160,6 @@ export default function App() {
     onToggle: handleDictationToggle,
   });
   const isPastePending = micFeedbackState === "pasting";
-
-  // Trigger streaming warmup when user signs in (covers first-time account creation).
-  // Pass isSignedIn directly to bypass the localStorage race condition where
-  // useAuth's useEffect may not have written localStorage yet.
-  useEffect(() => {
-    if (isSignedIn) {
-      warmupStreaming({ isSignedIn: true });
-    }
-  }, [isSignedIn, warmupStreaming]);
 
   // Listen for auto-hide setting changes relayed from the main process
   useEffect(() => {

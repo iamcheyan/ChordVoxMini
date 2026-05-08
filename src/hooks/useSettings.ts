@@ -5,7 +5,6 @@ import { API_ENDPOINTS } from "../config/constants";
 import logger from "../utils/logger";
 import { ensureAgentNameInDictionary } from "../utils/agentName";
 import i18n, { normalizeUiLanguage } from "../i18n";
-import { hasStoredByokKey } from "../utils/byokDetection";
 import type { LocalTranscriptionProvider } from "../types/electron";
 
 let _ReasoningService: typeof import("../services/ReasoningService").default | null = null;
@@ -283,7 +282,7 @@ function useSettingsInternal() {
 
   const [cloudTranscriptionMode, setCloudTranscriptionMode] = useLocalStorage(
     "cloudTranscriptionMode",
-    hasStoredByokKey() ? "byok" : "openwhispr",
+    "byok",
     {
       serialize: String,
       deserialize: String,
@@ -292,7 +291,7 @@ function useSettingsInternal() {
 
   const [cloudReasoningMode, setCloudReasoningMode] = useLocalStorage(
     "cloudReasoningMode",
-    "openwhispr",
+    "byok",
     {
       serialize: String,
       deserialize: String,

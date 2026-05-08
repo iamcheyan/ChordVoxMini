@@ -211,16 +211,6 @@
       "installButton": "Instalar atualização",
       "availableButton": "Atualização disponível"
     },
-    "limit": {
-      "weeklyTitle": "Limite semanal atingido",
-      "weeklyDescription": "Seu limite é redefinido continuamente. Faça upgrade para Pro ou use sua própria chave API para uso ilimitado."
-    },
-    "billing": {
-      "pastDueTitle": "Não foi possível processar seu pagamento",
-      "pastDueDescription": "Sem problemas — você está no plano gratuito por enquanto. Atualize o pagamento em Configurações para voltar ao Pro.",
-      "bannerDescription": "Você está no plano gratuito por enquanto — ainda tem {{limit}} palavras por semana. Atualize seu pagamento para voltar ao Pro.",
-      "updatePayment": "Atualizar pagamento"
-    },
     "history": {
       "title": "Transcrições",
       "couldNotLoadTitle": "Não foi possível carregar seu histórico",
@@ -245,11 +235,6 @@
       "empty": "Ainda sem transcrições",
       "press": "Pressione",
       "toStart": "para iniciar"
-    },
-    "cloudMigration": {
-      "title": "Boas-vindas ao ChordVox Pro",
-      "description": "Seu teste grátis de 7 dias está ativo! Mudamos sua transcrição para o ChordVox Cloud para resultados mais rápidos e precisos. Suas configurações anteriores foram salvas — volte quando quiser em Configurações.",
-      "viewSettings": "Ver configurações"
     },
     "aiCta": {
       "title": "Melhore suas transcrições com IA",
@@ -861,74 +846,6 @@
     "title": "Configurações"
   },
   "settingsPage": {
-    "account": {
-      "badges": {
-        "free": "Gratuito",
-        "limitReached": "Limite atingido",
-        "pastDue": "Em atraso",
-        "pro": "Pro",
-        "trial": "Teste"
-      },
-      "billing": {
-        "couldNotOpenDescription": "Tivemos dificuldade em abrir a página de cobrança. Tente novamente.",
-        "couldNotOpenTitle": "Não foi possível abrir cobrança",
-        "manageBilling": "Gerenciar cobrança",
-        "opening": "Abrindo...",
-        "updatePaymentMethod": "Atualizar forma de pagamento"
-      },
-      "checkout": {
-        "couldNotOpenDescription": "Tivemos dificuldade em abrir a página de checkout. Tente novamente.",
-        "couldNotOpenTitle": "Não foi possível abrir checkout",
-        "opening": "Abrindo...",
-        "upgradeToPro": "Fazer upgrade para Pro"
-      },
-      "disabled": "Desabilitado",
-      "featuresDisabled": "Recursos de conta desabilitados",
-      "featuresDisabledDescription": "Defina VITE_NEON_AUTH_URL no seu arquivo .env para habilitar os recursos de conta.",
-      "notConfigured": "A autenticação não está configurada",
-      "notSignedIn": "Não conectado",
-      "notSignedInDescription": "Crie uma conta para desbloquear recursos premium.",
-      "offline": "Offline",
-      "pastDue": {
-        "description": "Você está no plano gratuito por enquanto. Atualize sua forma de pagamento para voltar ao Pro.",
-        "title": "Não foi possível processar seu pagamento"
-      },
-      "planDescriptions": {
-        "freeUsage": "{{used}} / {{limit}} palavras esta semana",
-        "nextBilling": "Próxima cobrança: {{date}}",
-        "pastDue": "{{used}} / {{limit}} palavras gratuitas esta semana — atualize o pagamento para restaurar o Pro",
-        "trial": "{{days}} dias restantes — transcrições ilimitadas",
-        "unlimited": "Ilimitado"
-      },
-      "planLabels": {
-        "free": "Gratuito",
-        "pro": "Pro",
-        "trial": "Teste"
-      },
-      "planTitle": "Plano",
-      "rollingWeeklyLimit": "Limite semanal contínuo",
-      "signOut": {
-        "failedDescription": "Algo deu errado ao sair. Tente novamente.",
-        "failedTitle": "Não foi possível sair",
-        "signOut": "Sair",
-        "signingOut": "Saindo..."
-      },
-      "signedIn": "Conectado",
-      "title": "Conta",
-      "toasts": {
-        "approachingLimit": {
-          "description": "Você usou {{used}} de {{limit}} palavras gratuitas esta semana. Faça upgrade para Pro para uso ilimitado.",
-          "title": "Aproximando-se do limite semanal"
-        }
-      },
-      "trialCta": {
-        "button": "Criar conta gratuita",
-        "description": "Transcrições ilimitadas, processamento prioritário e muito mais.",
-        "title": "Experimente o Pro grátis por 7 dias"
-      },
-      "user": "Usuário",
-      "wordsRemaining": "{{remaining}} restantes"
-    },
     "agentConfig": {
       "agentName": "Nome do agente",
       "cleanupExample": "Limpeza",
@@ -1225,21 +1142,6 @@
     "quitConfirmDescription": "Isso fechará o ChordVox e encerrará os processos em segundo plano.",
     "quit": "Sair",
     "cancel": "Cancelar"
-  },
-  "upgradePrompt": {
-    "paymentFailed": "Não foi possível processar seu pagamento",
-    "weeklyLimit": "Você atingiu seu limite semanal",
-    "pastDueDescription": "Você está no plano gratuito por enquanto — sem problemas, você ainda tem {{limit}} palavras por semana.\nAtualize sua forma de pagamento para voltar ao Pro ilimitado.",
-    "limitDescription": "{{used}} de {{limit}} palavras usadas.\nSua transcrição foi salva e colada.",
-    "updatePayment": "Atualizar forma de pagamento",
-    "updatePaymentDescription": "Volte às transcrições ilimitadas do Pro.",
-    "upgradeToPro": "Fazer upgrade para Pro",
-    "upgradeDescription": "Transcrições ilimitadas. $9/mês.",
-    "useApiKey": "Use sua própria chave API",
-    "useApiKeyDescription": "Traga sua própria chave para uso ilimitado.",
-    "switchToLocal": "Mudar para local",
-    "switchToLocalDescription": "Transcrição offline. Sem limites.",
-    "rollingWeeklyLimit": "Limite semanal contínuo"
   },
   "windowControls": {
     "minimize": "Minimizar",

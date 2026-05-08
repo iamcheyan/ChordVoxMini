@@ -129,21 +129,6 @@
     "quit": "終了",
     "cancel": "キャンセル"
   },
-  "upgradePrompt": {
-    "paymentFailed": "お支払いを処理できませんでした",
-    "weeklyLimit": "週間の利用上限に達しました",
-    "pastDueDescription": "現在は無料プランをご利用中です。ご安心ください、週 {{limit}} ワードまで引き続きご利用いただけます。\nお支払い方法を更新して、無制限の Pro に戻しましょう。",
-    "limitDescription": "{{used}} / {{limit}} ワード使用済み。\n文字起こしは保存・貼り付けされました。",
-    "updatePayment": "お支払い方法を更新",
-    "updatePaymentDescription": "無制限の Pro 文字起こしに戻りましょう。",
-    "upgradeToPro": "Pro にアップグレード",
-    "upgradeDescription": "無制限の文字起こし。月額 $9。",
-    "useApiKey": "自分の API キーを使用",
-    "useApiKeyDescription": "自分のキーで無制限に利用できます。",
-    "switchToLocal": "ローカルに切り替え",
-    "switchToLocalDescription": "オフライン文字起こし。制限なし。",
-    "rollingWeeklyLimit": "週間利用上限（ローリング）"
-  },
   "windowControls": {
     "minimize": "最小化",
     "maximize": "最大化",
@@ -239,16 +224,6 @@
       "installButton": "アップデートをインストール",
       "availableButton": "アップデートあり"
     },
-    "limit": {
-      "weeklyTitle": "週間の利用上限に達しました",
-      "weeklyDescription": "利用上限はローリング方式でリセットされます。Pro にアップグレードするか、自分の API キーを使用して無制限にご利用ください。"
-    },
-    "billing": {
-      "pastDueTitle": "お支払いを処理できませんでした",
-      "pastDueDescription": "ご安心ください。現在は無料プランをご利用中です。設定からお支払い方法を更新して Pro に戻しましょう。",
-      "bannerDescription": "現在は無料プランをご利用中です。週 {{limit}} ワードまで利用できます。お支払い方法を更新して Pro に戻しましょう。",
-      "updatePayment": "お支払い方法を更新"
-    },
     "history": {
       "title": "文字起こし履歴",
       "couldNotLoadTitle": "履歴を読み込めませんでした",
@@ -273,11 +248,6 @@
       "empty": "文字起こし履歴はまだありません",
       "press": "押してください",
       "toStart": "開始するには"
-    },
-    "cloudMigration": {
-      "title": "ChordVox Pro へようこそ",
-      "description": "7 日間の無料トライアルが有効です！より高速で正確な文字起こしのために ChordVox Cloud に切り替えました。以前の設定は保存されています。設定からいつでも戻せます。",
-      "viewSettings": "設定を表示"
     },
     "aiCta": {
       "title": "AI で文字起こしを向上させましょう",
@@ -889,74 +859,6 @@
     "title": "設定"
   },
   "settingsPage": {
-    "account": {
-      "badges": {
-        "free": "無料",
-        "limitReached": "上限到達",
-        "pastDue": "支払い遅延",
-        "pro": "Pro",
-        "trial": "トライアル"
-      },
-      "billing": {
-        "couldNotOpenDescription": "請求ページを開く際に問題が発生しました。もう一度お試しください。",
-        "couldNotOpenTitle": "請求を開けませんでした",
-        "manageBilling": "請求を管理",
-        "opening": "開いています...",
-        "updatePaymentMethod": "お支払い方法を更新"
-      },
-      "checkout": {
-        "couldNotOpenDescription": "購入ページを開く際に問題が発生しました。もう一度お試しください。",
-        "couldNotOpenTitle": "購入ページを開けませんでした",
-        "opening": "開いています...",
-        "upgradeToPro": "Pro にアップグレード"
-      },
-      "disabled": "無効",
-      "featuresDisabled": "アカウント機能が無効です",
-      "featuresDisabledDescription": ".env ファイルで VITE_NEON_AUTH_URL を設定してアカウント機能を有効にしてください。",
-      "notConfigured": "認証が設定されていません",
-      "notSignedIn": "サインインしていません",
-      "notSignedInDescription": "アカウントを作成してプレミアム機能をアンロックしましょう。",
-      "offline": "オフライン",
-      "pastDue": {
-        "description": "現在は無料プランをご利用中です。お支払い方法を更新して Pro に戻しましょう。",
-        "title": "お支払いを処理できませんでした"
-      },
-      "planDescriptions": {
-        "freeUsage": "今週 {{used}} / {{limit}} ワード使用済み",
-        "nextBilling": "次の請求日: {{date}}",
-        "pastDue": "今週 {{used}} / {{limit}} 無料ワード使用済み - お支払い方法を更新して Pro を復元",
-        "trial": "残り {{days}} 日 - 無制限の文字起こし",
-        "unlimited": "無制限"
-      },
-      "planLabels": {
-        "free": "無料",
-        "pro": "Pro",
-        "trial": "トライアル"
-      },
-      "planTitle": "プラン",
-      "rollingWeeklyLimit": "週間利用上限（ローリング）",
-      "signOut": {
-        "failedDescription": "サインアウト中に問題が発生しました。もう一度お試しください。",
-        "failedTitle": "サインアウトできませんでした",
-        "signOut": "サインアウト",
-        "signingOut": "サインアウト中..."
-      },
-      "signedIn": "サインイン済み",
-      "title": "アカウント",
-      "toasts": {
-        "approachingLimit": {
-          "description": "今週 {{used}} / {{limit}} 無料ワードを使用しました。Pro にアップグレードして無制限にご利用ください。",
-          "title": "週間利用上限に近づいています"
-        }
-      },
-      "trialCta": {
-        "button": "無料アカウントを作成",
-        "description": "無制限の文字起こし、優先処理など。",
-        "title": "Pro を 7 日間無料でお試し"
-      },
-      "user": "ユーザー",
-      "wordsRemaining": "残り {{remaining}}"
-    },
     "agentConfig": {
       "agentName": "エージェント名",
       "cleanupExample": "クリーンアップ",

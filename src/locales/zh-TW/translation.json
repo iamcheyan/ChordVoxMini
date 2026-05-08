@@ -129,21 +129,6 @@
     "quit": "結束",
     "cancel": "取消"
   },
-  "upgradePrompt": {
-    "paymentFailed": "我們無法處理你的付款",
-    "weeklyLimit": "你已達到每週使用上限",
-    "pastDueDescription": "你目前使用的是免費方案，別擔心，每週仍有 {{limit}} 字的額度。\n更新付款方式即可恢復無限制的 Pro 方案。",
-    "limitDescription": "已使用 {{used}} / {{limit}} 字。\n你的轉錄已儲存並貼上。",
-    "updatePayment": "更新付款方式",
-    "updatePaymentDescription": "恢復無限制的 Pro 轉錄。",
-    "upgradeToPro": "升級至 Pro",
-    "upgradeDescription": "無限轉錄。每月 $9。",
-    "useApiKey": "使用你自己的 API Key",
-    "useApiKeyDescription": "自備金鑰，無限使用。",
-    "switchToLocal": "切換至本機模式",
-    "switchToLocalDescription": "離線轉錄，無任何限制。",
-    "rollingWeeklyLimit": "滾動式每週額度"
-  },
   "windowControls": {
     "minimize": "最小化",
     "maximize": "最大化",
@@ -239,16 +224,6 @@
       "installButton": "安裝更新",
       "availableButton": "有可用更新"
     },
-    "limit": {
-      "weeklyTitle": "已達每週使用上限",
-      "weeklyDescription": "你的額度為滾動式重置。升級至 Pro 或使用自己的 API Key 即可無限使用。"
-    },
-    "billing": {
-      "pastDueTitle": "我們無法處理你的付款",
-      "pastDueDescription": "別擔心，你目前使用的是免費方案。在設定中更新付款方式即可恢復 Pro。",
-      "bannerDescription": "你目前使用的是免費方案，每週仍有 {{limit}} 字的額度。更新付款方式即可恢復 Pro。",
-      "updatePayment": "更新付款"
-    },
     "history": {
       "title": "轉錄記錄",
       "couldNotLoadTitle": "無法載入歷史記錄",
@@ -273,11 +248,6 @@
       "empty": "目前沒有轉錄記錄",
       "press": "按下",
       "toStart": "開始"
-    },
-    "cloudMigration": {
-      "title": "歡迎使用 ChordVox Pro",
-      "description": "你的 7 天免費試用已啟用！我們已將轉錄切換至 ChordVox Cloud，提供更快、更準確的結果。你之前的設定已儲存，隨時可在設定中切換回來。",
-      "viewSettings": "查看設定"
     },
     "aiCta": {
       "title": "用 AI 增強你的轉錄品質",
@@ -889,74 +859,6 @@
     "title": "設定"
   },
   "settingsPage": {
-    "account": {
-      "badges": {
-        "free": "免費",
-        "limitReached": "已達上限",
-        "pastDue": "款項逾期",
-        "pro": "Pro",
-        "trial": "試用"
-      },
-      "billing": {
-        "couldNotOpenDescription": "開啟帳單頁面時發生問題。請再試一次。",
-        "couldNotOpenTitle": "無法開啟帳單頁面",
-        "manageBilling": "管理帳單",
-        "opening": "開啟中...",
-        "updatePaymentMethod": "更新付款方式"
-      },
-      "checkout": {
-        "couldNotOpenDescription": "開啟結帳頁面時發生問題。請再試一次。",
-        "couldNotOpenTitle": "無法開啟結帳頁面",
-        "opening": "開啟中...",
-        "upgradeToPro": "升級至 Pro"
-      },
-      "disabled": "已停用",
-      "featuresDisabled": "帳號功能已停用",
-      "featuresDisabledDescription": "請在 .env 檔案中設定 VITE_NEON_AUTH_URL 以啟用帳號功能。",
-      "notConfigured": "尚未設定驗證功能",
-      "notSignedIn": "尚未登入",
-      "notSignedInDescription": "建立帳號以解鎖進階功能。",
-      "offline": "離線",
-      "pastDue": {
-        "description": "你目前使用的是免費方案。更新付款方式即可恢復 Pro。",
-        "title": "我們無法處理你的付款"
-      },
-      "planDescriptions": {
-        "freeUsage": "本週已使用 {{used}} / {{limit}} 字",
-        "nextBilling": "下次扣款日：{{date}}",
-        "pastDue": "本週 {{used}} / {{limit}} 免費字數——更新付款方式以恢復 Pro",
-        "trial": "剩餘 {{days}} 天——無限轉錄",
-        "unlimited": "無限"
-      },
-      "planLabels": {
-        "free": "免費",
-        "pro": "Pro",
-        "trial": "試用"
-      },
-      "planTitle": "方案",
-      "rollingWeeklyLimit": "滾動式每週額度",
-      "signOut": {
-        "failedDescription": "登出時發生錯誤。請再試一次。",
-        "failedTitle": "無法登出",
-        "signOut": "登出",
-        "signingOut": "登出中..."
-      },
-      "signedIn": "已登入",
-      "title": "帳號",
-      "toasts": {
-        "approachingLimit": {
-          "description": "你本週已使用 {{used}} / {{limit}} 免費字數。升級至 Pro 即可無限使用。",
-          "title": "即將達到每週上限"
-        }
-      },
-      "trialCta": {
-        "button": "建立免費帳號",
-        "description": "無限轉錄、優先處理等更多功能。",
-        "title": "免費試用 Pro 7 天"
-      },
-      "user": "使用者",
-      "wordsRemaining": "剩餘 {{remaining}} 字"
-    },
     "agentConfig": {
       "agentName": "助理名稱",
       "cleanupExample": "文字整理",

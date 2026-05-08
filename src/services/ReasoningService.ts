@@ -5,7 +5,6 @@ import { withRetry, createApiRetryStrategy } from "../utils/retry";
 import { API_ENDPOINTS, TOKEN_LIMITS, buildApiUrl, normalizeBaseUrl } from "../config/constants";
 import logger from "../utils/logger";
 import { isSecureEndpoint } from "../utils/urlUtils";
-import { withSessionRefresh } from "../lib/neonAuth";
 import { signRequest } from "../utils/awsSigV4";
 
 class ReasoningService extends BaseReasoningService {
@@ -510,9 +509,6 @@ class ReasoningService extends BaseReasoningService {
           break;
         case "groq":
           result = await this.processWithGroq(text, model, agentName, config);
-          break;
-        case "openwhispr":
-          result = await this.processWithOpenWhispr(text, model, agentName, config);
           break;
         case "bedrock":
           result = await this.processWithBedrock(text, trimmedModel, agentName, config);
@@ -1380,9 +1376,6 @@ class ReasoningService extends BaseReasoningService {
         case "custom":
           // Custom endpoint can be keyless; endpoint URL is the minimum requirement.
           return !!customEndpoint;
-        case "openwhispr":
-          // OpenWhispr cloud path handles auth errors at call-time.
-          return true;
         case "auto":
         default:
           return !!(openaiKey || openrouterKey || anthropicKey || geminiKey || groqKey || localAvailable || customEndpoint);

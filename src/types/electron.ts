@@ -289,27 +289,6 @@ export interface CallTraceEvent {
   } | null;
 }
 
-export interface LicenseStatusResult {
-  success: boolean;
-  configured: boolean;
-  requiresServerValidation?: boolean;
-  status: "unlicensed" | "active" | "expired" | "offline_grace" | "invalid";
-  isActive: boolean;
-  keyPresent: boolean;
-  plan?: string | null;
-  expiresAt?: string | null;
-  trialEnabled?: boolean;
-  trialDays?: number;
-  trialStartedAt?: string | null;
-  trialExpiresAt?: string | null;
-  trialDaysLeft?: number;
-  trialActive?: boolean;
-  lastValidatedAt?: string | null;
-  offlineGraceUntil?: string | null;
-  message?: string | null;
-  error?: string | null;
-}
-
 export interface PasteToolsResult {
   platform: "darwin" | "win32" | "linux";
   available: boolean;
@@ -577,10 +556,6 @@ declare global {
       saveCustomReasoningKey?: (key: string) => Promise<void>;
       getLicenseApiBaseUrl?: () => Promise<string | null>;
       saveLicenseApiBaseUrl?: (url: string) => Promise<{ success: boolean; value?: string }>;
-      licenseGetStatus?: () => Promise<LicenseStatusResult>;
-      licenseActivate?: (licenseKey: string) => Promise<LicenseStatusResult>;
-      licenseValidate?: () => Promise<LicenseStatusResult>;
-      licenseClear?: () => Promise<LicenseStatusResult>;
 
       // Dictation key persistence (file-based for reliable startup)
       getDictationKey?: () => Promise<string | null>;
@@ -644,74 +619,6 @@ declare global {
       // Auto-check update management
       getAutoCheckUpdate?: () => Promise<boolean>;
       setAutoCheckUpdate?: (enabled: boolean) => Promise<{ success: boolean; error?: string }>;
-
-      // Auth
-      authClearSession?: () => Promise<void>;
-
-      // OpenWhispr Cloud API
-      cloudTranscribe?: (
-        audioBuffer: ArrayBuffer,
-        opts: { language?: string; prompt?: string }
-      ) => Promise<{
-        success: boolean;
-        text?: string;
-        wordsUsed?: number;
-        wordsRemaining?: number;
-        limitReached?: boolean;
-        error?: string;
-        code?: string;
-      }>;
-      cloudReason?: (
-        text: string,
-        opts: {
-          model?: string;
-          agentName?: string;
-          customDictionary?: string[];
-          customPrompt?: string;
-          language?: string;
-          locale?: string;
-        }
-      ) => Promise<{
-        success: boolean;
-        text?: string;
-        model?: string;
-        provider?: string;
-        error?: string;
-        code?: string;
-      }>;
-      cloudUsage?: () => Promise<{
-        success: boolean;
-        wordsUsed?: number;
-        wordsRemaining?: number;
-        limit?: number;
-        plan?: string;
-        status?: string;
-        isSubscribed?: boolean;
-        isTrial?: boolean;
-        trialDaysLeft?: number | null;
-        currentPeriodEnd?: string | null;
-        resetAt?: string;
-        error?: string;
-        code?: string;
-      }>;
-      cloudCheckout?: () => Promise<{
-        success: boolean;
-        url?: string;
-        error?: string;
-        code?: string;
-      }>;
-      cloudBillingPortal?: () => Promise<{
-        success: boolean;
-        url?: string;
-        error?: string;
-        code?: string;
-      }>;
-
-      // Usage limit events
-      notifyLimitReached?: (data: { wordsUsed: number; limit: number }) => void;
-      onLimitReached?: (
-        callback: (data: { wordsUsed: number; limit: number }) => void
-      ) => () => void;
 
       // AssemblyAI Streaming
       assemblyAiStreamingWarmup?: (options?: {

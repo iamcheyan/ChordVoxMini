@@ -10,23 +10,18 @@ import {
   RefreshCw,
   Loader2,
   Sparkles,
-  Cloud,
   X,
-  AlertTriangle,
 } from "lucide-react";
 import type { SettingsSectionType } from "./SettingsModal";
 import TitleBar from "./TitleBar";
 import SupportDropdown from "./ui/SupportDropdown";
 import TranscriptionItem from "./ui/TranscriptionItem";
-import UpgradePrompt from "./UpgradePrompt";
 import { ConfirmDialog, AlertDialog } from "./ui/dialog";
 import { useDialogs } from "../hooks/useDialogs";
 import { useHotkey } from "../hooks/useHotkey";
 import { useToast } from "./ui/Toast";
 import { useUpdater } from "../hooks/useUpdater";
 import { useSettings } from "../hooks/useSettings";
-import { useAuth } from "../hooks/useAuth";
-import { useUsage } from "../hooks/useUsage";
 import {
   useTranscriptions,
   initializeTranscriptions,
@@ -42,20 +37,13 @@ export default function ControlPanel() {
   const history = useTranscriptions();
   const [isLoading, setIsLoading] = useState(true);
   const [showSettings, setShowSettings] = useState(true);
-  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
-  const [limitData, setLimitData] = useState<{ wordsUsed: number; limit: number } | null>(null);
-  const hasShownUpgradePrompt = useRef(false);
   const [settingsSection, setSettingsSection] = useState<SettingsSectionType | undefined>("general");
   const [aiCTADismissed, setAiCTADismissed] = useState(
     () => localStorage.getItem("aiCTADismissed") === "true"
   );
-  const [showCloudMigrationBanner, setShowCloudMigrationBanner] = useState(false);
-  const cloudMigrationProcessed = useRef(false);
   const { hotkey } = useHotkey();
   const { toast } = useToast();
-  const { useReasoningModel, setUseLocalWhisper, setCloudTranscriptionMode } = useSettings();
-  const { isSignedIn, isLoaded: authLoaded } = useAuth();
-  const usage = useUsage();
+  const { useReasoningModel } = useSettings();
 
   const {
     status: updateStatus,
@@ -99,53 +87,6 @@ export default function ControlPanel() {
       });
     }
   }, [updateError, toast, t]);
-
-  useEffect(() => {
-    const dispose = window.electronAPI?.onLimitReached?.(
-      (data: { wordsUsed: number; limit: number }) => {
-        if (!hasShownUpgradePrompt.current) {
-          hasShownUpgradePrompt.current = true;
-          setLimitData(data);
-          setShowUpgradePrompt(true);
-        } else {
-          toast({
-            title: t("controlPanel.limit.weeklyTitle"),
-            description: t("controlPanel.limit.weeklyDescription"),
-            duration: 5000,
-          });
-        }
-      }
-    );
-
-    return () => {
-      dispose?.();
-    };
-  }, [toast, t]);
-
-  useEffect(() => {
-    if (!usage?.isPastDue || !usage.hasLoaded) return;
-    if (sessionStorage.getItem("pastDueNotified")) return;
-    sessionStorage.setItem("pastDueNotified", "true");
-    toast({
-      title: t("controlPanel.billing.pastDueTitle"),
-      description: t("controlPanel.billing.pastDueDescription"),
-      variant: "destructive",
-      duration: 8000,
-    });
-  }, [usage?.isPastDue, usage?.hasLoaded, toast, t]);
-
-  useEffect(() => {
-    if (!authLoaded || !isSignedIn || cloudMigrationProcessed.current) return;
-    const isPending = localStorage.getItem("pendingCloudMigration") === "true";
-    const alreadyShown = localStorage.getItem("cloudMigrationShown") === "true";
-    if (!isPending || alreadyShown) return;
-
-    cloudMigrationProcessed.current = true;
-    setUseLocalWhisper(false);
-    setCloudTranscriptionMode("openwhispr");
-    localStorage.removeItem("pendingCloudMigration");
-    setShowCloudMigrationBanner(true);
-  }, [authLoaded, isSignedIn, setUseLocalWhisper, setCloudTranscriptionMode]);
 
   const loadTranscriptions = async () => {
     try {
@@ -329,13 +270,6 @@ export default function ControlPanel() {
         onOk={() => {}}
       />
 
-      <UpgradePrompt
-        open={showUpgradePrompt}
-        onOpenChange={setShowUpgradePrompt}
-        wordsUsed={limitData?.wordsUsed}
-        limit={limitData?.limit}
-      />
-
       <TitleBar
         actions={
           <>
@@ -386,37 +320,6 @@ export default function ControlPanel() {
 
       <div className="p-4">
         <div className="max-w-3xl mx-auto">
-          {usage?.isPastDue && (
-            <div className="mb-3 rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/50 p-3">
-              <div className="flex items-start gap-3">
-                <div className="shrink-0 w-8 h-8 rounded-md bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center">
-                  <AlertTriangle size={16} className="text-amber-600 dark:text-amber-400" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[13px] font-medium text-amber-900 dark:text-amber-200 mb-0.5">
-                    {t("controlPanel.billing.pastDueTitle")}
-                  </p>
-                  <p className="text-[12px] text-amber-700 dark:text-amber-300/80 mb-2">
-                    {t("controlPanel.billing.bannerDescription", {
-                      limit: usage.limit.toLocaleString(),
-                    })}
-                  </p>
-                  <Button
-                    variant="default"
-                    size="sm"
-                    className="h-7 text-[11px]"
-                    onClick={() => {
-                      setSettingsSection("general");
-                      setShowSettings(true);
-                    }}
-                  >
-                    {t("controlPanel.billing.updatePayment")}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
-
           <div className="flex items-center justify-between mb-3 px-1">
             <div className="flex items-center gap-2">
               <FileText size={14} className="text-primary" />
@@ -441,46 +344,6 @@ export default function ControlPanel() {
               </Button>
             )}
           </div>
-
-          {showCloudMigrationBanner && (
-            <div className="mb-3 relative rounded-lg border border-primary/20 bg-primary/5 dark:bg-primary/10 p-3">
-              <button
-                onClick={() => {
-                  setShowCloudMigrationBanner(false);
-                  localStorage.setItem("cloudMigrationShown", "true");
-                }}
-                className="absolute top-2 right-2 p-1 rounded-sm text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-              >
-                <X size={14} />
-              </button>
-              <div className="flex items-start gap-3 pr-6">
-                <div className="shrink-0 w-8 h-8 rounded-md bg-primary/10 dark:bg-primary/20 flex items-center justify-center">
-                  <Cloud size={16} className="text-primary" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[13px] font-medium text-foreground mb-0.5">
-                    {t("controlPanel.cloudMigration.title")}
-                  </p>
-                  <p className="text-[12px] text-muted-foreground mb-2">
-                    {t("controlPanel.cloudMigration.description")}
-                  </p>
-                  <Button
-                    variant="default"
-                    size="sm"
-                    className="h-7 text-[11px]"
-                    onClick={() => {
-                      setShowCloudMigrationBanner(false);
-                      localStorage.setItem("cloudMigrationShown", "true");
-                      setSettingsSection("transcription");
-                      setShowSettings(true);
-                    }}
-                  >
-                    {t("controlPanel.cloudMigration.viewSettings")}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
 
           {!useReasoningModel && !aiCTADismissed && (
             <div className="mb-3 relative rounded-lg border border-primary/20 bg-primary/5 dark:bg-primary/10 p-3">

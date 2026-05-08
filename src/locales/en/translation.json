@@ -129,21 +129,6 @@
     "quit": "Quit",
     "cancel": "Cancel"
   },
-  "upgradePrompt": {
-    "paymentFailed": "We couldn't process your payment",
-    "weeklyLimit": "You've reached your weekly limit",
-    "pastDueDescription": "You're on the free plan for now — don't worry, you still get {{limit}} words per week.\nUpdate your payment method to get back to unlimited Pro.",
-    "limitDescription": "{{used}} of {{limit}} words used.\nYour transcription was saved and pasted.",
-    "updatePayment": "Update payment method",
-    "updatePaymentDescription": "Get back to unlimited Pro transcriptions.",
-    "upgradeToPro": "Upgrade to Pro",
-    "upgradeDescription": "Unlimited transcriptions. $9/month.",
-    "useApiKey": "Use your own API key",
-    "useApiKeyDescription": "Bring your own key for unlimited use.",
-    "switchToLocal": "Switch to local",
-    "switchToLocalDescription": "Offline transcription. No limits.",
-    "rollingWeeklyLimit": "Rolling weekly limit"
-  },
   "windowControls": {
     "minimize": "Minimize",
     "maximize": "Maximize",
@@ -239,16 +224,6 @@
       "installButton": "Install Update",
       "availableButton": "Update Available"
     },
-    "limit": {
-      "weeklyTitle": "Weekly limit reached",
-      "weeklyDescription": "Your limit resets on a rolling basis. Upgrade to Pro or use your own API key for unlimited use."
-    },
-    "billing": {
-      "pastDueTitle": "We couldn't process your payment",
-      "pastDueDescription": "Don't worry - you're on the free plan for now. Update your payment in Settings to get back to Pro.",
-      "bannerDescription": "You're on the free plan for now - you still get {{limit}} words per week. Update your payment to get back to Pro.",
-      "updatePayment": "Update Payment"
-    },
     "history": {
       "title": "Transcriptions",
       "couldNotLoadTitle": "Couldn't load your history",
@@ -273,11 +248,6 @@
       "empty": "No transcriptions yet",
       "press": "Press",
       "toStart": "to start"
-    },
-    "cloudMigration": {
-      "title": "Welcome to ChordVox Pro",
-      "description": "Your 7-day free trial is active! We've switched your transcription to ChordVox Cloud for faster, more accurate results. Your previous settings are saved - switch back anytime in Settings.",
-      "viewSettings": "View Settings"
     },
     "aiCta": {
       "title": "Enhance your transcriptions with AI",
@@ -939,146 +909,6 @@
     "title": "Settings"
   },
   "settingsPage": {
-    "account": {
-      "badges": {
-        "free": "Free",
-        "limitReached": "Limit reached",
-        "pastDue": "Past due",
-        "pro": "Pro",
-        "trial": "Trial"
-      },
-      "billing": {
-        "couldNotOpenDescription": "We had trouble opening the billing page. Please try again.",
-        "couldNotOpenTitle": "Couldn't open billing",
-        "manageBilling": "Manage Billing",
-        "opening": "Opening...",
-        "updatePaymentMethod": "Update Payment Method"
-      },
-      "checkout": {
-        "couldNotOpenDescription": "We had trouble opening the checkout page. Please try again.",
-        "couldNotOpenTitle": "Couldn't open checkout",
-        "opening": "Opening...",
-        "upgradeToPro": "Upgrade to Pro"
-      },
-      "disabled": "Disabled",
-      "featuresDisabled": "Account Features Disabled",
-      "featuresDisabledDescription": "Set VITE_NEON_AUTH_URL in your .env file to enable account features.",
-      "notConfigured": "Authentication is not configured",
-      "notSignedIn": "Not signed in",
-      "notSignedInDescription": "Create an account to unlock premium features.",
-      "offline": "Offline",
-      "pastDue": {
-        "description": "You're on the free plan for now. Update your payment method to get back to Pro.",
-        "title": "We couldn't process your payment"
-      },
-      "planDescriptions": {
-        "freeUsage": "{{used}} / {{limit}} words this week",
-        "nextBilling": "Next billing: {{date}}",
-        "pastDue": "{{used}} / {{limit}} free words this week - update payment to restore Pro",
-        "trial": "{{days}} days remaining - unlimited transcriptions",
-        "unlimited": "Unlimited"
-      },
-      "planLabels": {
-        "free": "Free",
-        "pro": "Pro",
-        "trial": "Trial"
-      },
-      "planTitle": "Plan",
-      "rollingWeeklyLimit": "Rolling weekly limit",
-      "signOut": {
-        "failedDescription": "Something went wrong signing out. Please try again.",
-        "failedTitle": "Couldn't sign out",
-        "signOut": "Sign Out",
-        "signingOut": "Signing out..."
-      },
-      "signedIn": "Signed in",
-      "title": "Account",
-      "toasts": {
-        "approachingLimit": {
-          "description": "You've used {{used}} of {{limit}} free words this week. Upgrade to Pro for unlimited use.",
-          "title": "Approaching weekly limit"
-        }
-      },
-      "trialCta": {
-        "button": "Create Free Account",
-        "description": "Unlimited transcriptions, priority processing, and more.",
-        "title": "Try Pro free for 7 days"
-      },
-      "desktopLicense": {
-        "title": "Desktop License",
-        "descriptionConfigured": "This build validates desktop keys against your license API.",
-        "descriptionNotConfigured": "License service is not ready yet. Please contact support.",
-        "currentStatusLabel": "Current status",
-        "currentStatusDescription": "Use a paid license key to unlock commercial usage on this device.",
-        "currentStatusActiveDescription": "This device is activated and ready for commercial usage.",
-        "currentStatusTrialDescription": "Trial active. {{days}} day(s) remaining before a license key is required.",
-        "currentStatusTrialExpiredDescription": "Trial has ended. Enter a paid license key to continue.",
-        "currentStatusNotConfigured": "License service is not ready on this build yet. Please contact support.",
-        "licenseApiUrlLabel": "License API URL",
-        "licenseApiUrlPlaceholder": "https://license.your-domain.com",
-        "licenseApiUrlDescription": "Set this once, then users can activate directly with a license key in this app.",
-        "inputPlaceholder": "Enter license key",
-        "activatedHint": "This device is activated. Use \"Change key\" only when replacing the license.",
-        "actions": {
-          "activate": "Activate",
-          "activating": "Activating",
-          "validate": "Validate",
-          "checking": "Checking",
-          "clear": "Clear",
-          "changeKey": "Change key",
-          "save": "Save",
-          "saving": "Saving"
-        },
-        "statusLabels": {
-          "active": "Active",
-          "trial": "Trial",
-          "offlineGrace": "Offline Grace",
-          "expired": "Expired",
-          "invalid": "Invalid",
-          "notActivated": "Not Activated"
-        },
-        "meta": {
-          "plan": "Plan: {{plan}}",
-          "expires": "Expires: {{date}}",
-          "lastCheck": "Last check: {{date}}"
-        },
-        "dialogs": {
-          "removeTitle": "Remove saved license?",
-          "removeDescription": "This device will return to unlicensed mode until you activate again.",
-          "removeConfirm": "Remove"
-        },
-        "toasts": {
-          "keyRequiredTitle": "License key required",
-          "keyRequiredDescription": "Enter your license key before activating.",
-          "activatedTitle": "License activated",
-          "activatedDescription": "This device is now activated.",
-          "activationFailedTitle": "Activation failed",
-          "activationFailedDescription": "The license key could not be activated.",
-          "activationLimitDescription": "This license key supports only one device. To switch devices, contact support to reset the previous activation.",
-          "serverNotReadyDescription": "License service is not ready yet. Please contact support.",
-          "deviceNotActivatedDescription": "This license key is not activated on this device.",
-          "revokedDescription": "This license key has been revoked. Please contact support.",
-          "expiredDescription": "This license key has expired.",
-          "notActiveDescription": "This license key is currently not active.",
-          "activationUnexpectedError": "Unexpected error while activating the license.",
-          "validatedTitle": "License validated",
-          "validateFailedTitle": "License check failed",
-          "validatedDescription": "License is valid.",
-          "invalidDescription": "License is invalid.",
-          "validateUnexpectedError": "Unexpected error while checking license status.",
-          "removedTitle": "License removed",
-          "removedDescription": "Saved license state was cleared.",
-          "removeFailedTitle": "Could not remove license",
-          "removeFailedDescription": "Unexpected error while removing the saved license.",
-          "licenseApiSavedTitle": "License API saved",
-          "licenseApiSavedDescription": "License activation now uses the new API URL.",
-          "licenseApiSaveFailedTitle": "Could not save License API",
-          "licenseApiSaveFailedDescription": "Please check the URL and try again."
-        }
-      },
-      "user": "User",
-      "wordsRemaining": "{{remaining}} remaining"
-    },
     "agentConfig": {
       "agentName": "Agent Name",
       "cleanupExample": "Cleanup",

@@ -129,21 +129,6 @@
     "quit": "退出",
     "cancel": "取消"
   },
-  "upgradePrompt": {
-    "paymentFailed": "我们无法处理你的付款",
-    "weeklyLimit": "你已达到本周的使用上限",
-    "pastDueDescription": "你目前使用的是免费版——别担心，每周仍有 {{limit}} 个词的额度。\n更新支付方式即可恢复无限制的 Pro 版。",
-    "limitDescription": "已使用 {{used}} / {{limit}} 个词。\n你的转录已保存并粘贴。",
-    "updatePayment": "更新支付方式",
-    "updatePaymentDescription": "恢复无限制的 Pro 版转录。",
-    "upgradeToPro": "升级到 Pro",
-    "upgradeDescription": "无限转录，每月 $9。",
-    "useApiKey": "使用自己的 API Key",
-    "useApiKeyDescription": "使用你自己的密钥，无限制使用。",
-    "switchToLocal": "切换到本地模式",
-    "switchToLocalDescription": "离线转录，无使用限制。",
-    "rollingWeeklyLimit": "滚动周限额"
-  },
   "windowControls": {
     "minimize": "最小化",
     "maximize": "最大化",
@@ -226,7 +211,7 @@
   "controlPanel": {
     "update": {
       "readyTitle": "更新已准备就绪",
-      "readyDescription": "点击\u201c安装更新\u201d以重启并安装最新版本。",
+      "readyDescription": "点击“安装更新”以重启并安装最新版本。",
       "problemTitle": "更新遇到问题",
       "problemDescription": "无法完成更新，请稍后再试。",
       "installTitle": "安装更新",
@@ -238,16 +223,6 @@
       "installing": "正在安装...",
       "installButton": "安装更新",
       "availableButton": "有可用更新"
-    },
-    "limit": {
-      "weeklyTitle": "已达到周限额",
-      "weeklyDescription": "你的额度按滚动方式重置。升级到 Pro 或使用自己的 API Key 可不受限制。"
-    },
-    "billing": {
-      "pastDueTitle": "我们无法处理你的付款",
-      "pastDueDescription": "别担心——你目前使用的是免费版。在设置中更新支付方式即可恢复 Pro 版。",
-      "bannerDescription": "你目前使用的是免费版——每周仍有 {{limit}} 个词的额度。更新支付方式即可恢复 Pro 版。",
-      "updatePayment": "更新支付方式"
     },
     "history": {
       "title": "转录记录",
@@ -273,11 +248,6 @@
       "empty": "暂无转录记录",
       "press": "按下",
       "toStart": "开始"
-    },
-    "cloudMigration": {
-      "title": "欢迎使用 ChordVox Pro",
-      "description": "你的 7 天免费试用已激活！我们已将转录切换到 ChordVox 云端，以获得更快、更准确的结果。你之前的设置已保存——随时可以在设置中切换回去。",
-      "viewSettings": "查看设置"
     },
     "aiCta": {
       "title": "用 AI 提升你的转录质量",
@@ -308,7 +278,7 @@
       "applyAndRefresh": "应用并刷新",
       "queryPrefix": "我们将查询",
       "querySuffix": "获取可用模型。",
-      "modelsReloadHint": "当你离开 URL 输入框或点击\u201c应用并刷新\u201d时，模型列表将重新加载。",
+      "modelsReloadHint": "当你离开 URL 输入框或点击“应用并刷新”时，模型列表将重新加载。",
       "bedrockEndpointHint": "默认根据 Region 自动生成，自定义端点可用于 VPC Endpoint 等场景。",
       "enterEndpoint": "请在上方输入端点 URL 以加载模型。",
       "fetchingModels": "正在从端点获取模型列表...",
@@ -501,7 +471,7 @@
       "failedUserCheck": "检查用户账户失败",
       "generic": "出了点问题，请重试。",
       "invalidCredentials": "邮箱或密码无效",
-      "plusAliasUnsupported": "不支持包含\u201c+\u201d的邮箱别名"
+      "plusAliasUnsupported": "不支持包含“+”的邮箱别名"
     },
     "getStarted": "开始使用",
     "legal": {
@@ -607,7 +577,7 @@
       "footer": "日志不包含 API Key 或敏感数据",
       "steps": {
         "0": "在启用 Debug 模式的情况下重现问题",
-        "1": "点击上方的\u201c打开日志文件夹\u201d",
+        "1": "点击上方的“打开日志文件夹”",
         "2": "将最新的日志文件附加到你的 Bug 报告中"
       },
       "title": "为技术支持分享日志"
@@ -829,7 +799,7 @@
       "view": "查看"
     },
     "test": {
-      "addressHint": "试试说\u201c{{agentName}}\u201d来测试指令模式",
+      "addressHint": "试试说“{{agentName}}”来测试指令模式",
       "aiModels": "AI 模型",
       "baseUrlMissing": "{{provider}} 的 URL 缺失，请在 AI 模型设置中添加。",
       "cleanup": "文本整理",
@@ -854,7 +824,7 @@
       "defaultPrompt": "默认提示词",
       "modes": {
         "agent": {
-          "description": "通过\u201c{{agentName}}\u201d触发——执行命令、回答问题、撰写内容",
+          "description": "通过“{{agentName}}”触发——执行命令、回答问题、撰写内容",
           "label": "语音助手"
         },
         "cleanup": {
@@ -939,158 +909,18 @@
     "title": "设置"
   },
   "settingsPage": {
-    "account": {
-      "badges": {
-        "free": "免费版",
-        "limitReached": "已达上限",
-        "pastDue": "逾期未付",
-        "pro": "Pro",
-        "trial": "试用"
-      },
-      "billing": {
-        "couldNotOpenDescription": "打开账单页面时出错，请重试。",
-        "couldNotOpenTitle": "无法打开账单",
-        "manageBilling": "管理账单",
-        "opening": "正在打开...",
-        "updatePaymentMethod": "更新支付方式"
-      },
-      "checkout": {
-        "couldNotOpenDescription": "打开结账页面时出错，请重试。",
-        "couldNotOpenTitle": "无法打开结账页",
-        "opening": "正在打开...",
-        "upgradeToPro": "升级到 Pro"
-      },
-      "disabled": "已禁用",
-      "featuresDisabled": "账户功能已禁用",
-      "featuresDisabledDescription": "在 .env 文件中设置 VITE_NEON_AUTH_URL 以启用账户功能。",
-      "notConfigured": "身份验证未配置",
-      "notSignedIn": "未登录",
-      "notSignedInDescription": "创建账户以解锁高级功能。",
-      "offline": "离线",
-      "pastDue": {
-        "description": "你目前使用的是免费版。更新支付方式即可恢复 Pro 版。",
-        "title": "我们无法处理你的付款"
-      },
-      "planDescriptions": {
-        "freeUsage": "本周已使用 {{used}} / {{limit}} 个词",
-        "nextBilling": "下次扣费：{{date}}",
-        "pastDue": "本周 {{used}} / {{limit}} 免费词数——更新支付方式以恢复 Pro",
-        "trial": "剩余 {{days}} 天——无限转录",
-        "unlimited": "无限制"
-      },
-      "planLabels": {
-        "free": "免费版",
-        "pro": "Pro",
-        "trial": "试用"
-      },
-      "planTitle": "套餐",
-      "rollingWeeklyLimit": "滚动周限额",
-      "signOut": {
-        "failedDescription": "退出登录时出错，请重试。",
-        "failedTitle": "无法退出登录",
-        "signOut": "退出登录",
-        "signingOut": "正在退出..."
-      },
-      "signedIn": "已登录",
-      "title": "账户",
-      "toasts": {
-        "approachingLimit": {
-          "description": "本周已使用 {{used}} / {{limit}} 个免费词数。升级到 Pro 可享受无限使用。",
-          "title": "即将达到周限额"
-        }
-      },
-      "trialCta": {
-        "button": "免费创建账户",
-        "description": "无限转录、优先处理等更多功能。",
-        "title": "免费试用 Pro 版 7 天"
-      },
-      "desktopLicense": {
-        "title": "桌面授权",
-        "descriptionConfigured": "当前构建会通过你的授权 API 校验桌面授权密钥。",
-        "descriptionNotConfigured": "授权服务尚未就绪，请联系技术支持。",
-        "currentStatusLabel": "当前状态",
-        "currentStatusDescription": "输入付费授权密钥即可在本机解锁商业使用。",
-        "currentStatusActiveDescription": "本机已激活，可正常进行商业使用。",
-        "currentStatusTrialDescription": "试用中，剩余 {{days}} 天后需要输入授权码。",
-        "currentStatusTrialExpiredDescription": "试用已结束，请输入付费授权码继续使用。",
-        "currentStatusNotConfigured": "当前版本尚未连接授权服务，请联系技术支持。",
-        "licenseApiUrlLabel": "授权 API 地址",
-        "licenseApiUrlPlaceholder": "https://license.your-domain.com",
-        "licenseApiUrlDescription": "这里配置一次后，用户只需输入授权码即可在应用内激活。",
-        "inputPlaceholder": "输入授权密钥",
-        "activatedHint": "当前设备已激活。仅在需要更换授权码时点击“更换授权码”。",
-        "actions": {
-          "activate": "激活",
-          "activating": "激活中",
-          "validate": "校验",
-          "checking": "检查中",
-          "clear": "清除",
-          "changeKey": "更换授权码",
-          "save": "保存",
-          "saving": "保存中"
-        },
-        "statusLabels": {
-          "active": "已激活",
-          "trial": "试用中",
-          "offlineGrace": "离线宽限",
-          "expired": "已过期",
-          "invalid": "无效",
-          "notActivated": "未激活"
-        },
-        "meta": {
-          "plan": "计划：{{plan}}",
-          "expires": "到期时间：{{date}}",
-          "lastCheck": "上次检查：{{date}}"
-        },
-        "dialogs": {
-          "removeTitle": "移除已保存的授权？",
-          "removeDescription": "移除后本机会回到未授权状态，直到你再次激活。",
-          "removeConfirm": "移除"
-        },
-        "toasts": {
-          "keyRequiredTitle": "需要授权密钥",
-          "keyRequiredDescription": "请先输入授权密钥再激活。",
-          "activatedTitle": "授权已激活",
-          "activatedDescription": "这台设备已完成激活。",
-          "activationFailedTitle": "激活失败",
-          "activationFailedDescription": "该授权密钥无法激活。",
-          "activationLimitDescription": "该授权码仅支持 1 台设备。如需换机，请联系技术支持重置旧设备激活。",
-          "serverNotReadyDescription": "授权服务尚未就绪，请联系技术支持。",
-          "deviceNotActivatedDescription": "该授权码尚未在本机激活。",
-          "revokedDescription": "该授权码已被撤销，请联系技术支持。",
-          "expiredDescription": "该授权码已过期。",
-          "notActiveDescription": "该授权码当前未激活。",
-          "activationUnexpectedError": "激活授权时发生未知错误。",
-          "validatedTitle": "授权校验通过",
-          "validateFailedTitle": "授权校验失败",
-          "validatedDescription": "授权有效。",
-          "invalidDescription": "授权无效。",
-          "validateUnexpectedError": "检查授权状态时发生未知错误。",
-          "removedTitle": "授权已移除",
-          "removedDescription": "已清除本机保存的授权状态。",
-          "removeFailedTitle": "无法移除授权",
-          "removeFailedDescription": "移除本机授权时发生未知错误。",
-          "licenseApiSavedTitle": "授权 API 已保存",
-          "licenseApiSavedDescription": "后续授权激活将使用新的 API 地址。",
-          "licenseApiSaveFailedTitle": "无法保存授权 API",
-          "licenseApiSaveFailedDescription": "请检查地址后重试。"
-        }
-      },
-      "user": "用户",
-      "wordsRemaining": "剩余 {{remaining}} 个词"
-    },
     "agentConfig": {
       "agentName": "助手名称",
       "cleanupExample": "文本整理",
       "cleanupMode": "整理模式",
       "description": "为你的 AI 助手取个名字，这样你就能在听写时直接呼唤它",
       "dialogs": {
-        "updatedDescription": "你的助手已命名为\u201c{{name}}\u201d。说\u201cHi {{name}}\u201d然后说出指令即可使用。",
+        "updatedDescription": "你的助手已命名为“{{name}}”。说“Hi {{name}}”然后说出指令即可使用。",
         "updatedTitle": "助手名称已更新"
       },
       "examplesTitle": "示例",
       "helper": "选一个简短、说起来自然的名字",
-      "howItWorksDescription": "当你说\u201cHi {{agentName}}\u201d并跟上指令时，AI 会从整理模式切换到指令模式。没有触发短语时，它只会整理你的听写内容。",
+      "howItWorksDescription": "当你说“Hi {{agentName}}”并跟上指令时，AI 会从整理模式切换到指令模式。没有触发短语时，它只会整理你的听写内容。",
       "howItWorksTitle": "工作原理",
       "instructionMode": "指令",
       "placeholder": "例如 Jarvis、Nova、Atlas...",

@@ -261,14 +261,6 @@ contextBridge.exposeInMainWorld("electronAPI", {
   openSoundInputSettings: () => ipcRenderer.invoke("open-sound-input-settings"),
   openAccessibilitySettings: () => ipcRenderer.invoke("open-accessibility-settings"),
   openWhisperModelsFolder: () => ipcRenderer.invoke("open-whisper-models-folder"),
-  authClearSession: () => ipcRenderer.invoke("auth-clear-session"),
-
-  // OpenWhispr Cloud API
-  cloudTranscribe: (audioBuffer, opts) => ipcRenderer.invoke("cloud-transcribe", audioBuffer, opts),
-  cloudReason: (text, opts) => ipcRenderer.invoke("cloud-reason", text, opts),
-  cloudUsage: () => ipcRenderer.invoke("cloud-usage"),
-  cloudCheckout: () => ipcRenderer.invoke("cloud-checkout"),
-  cloudBillingPortal: () => ipcRenderer.invoke("cloud-billing-portal"),
 
   // Assembly AI Streaming
   assemblyAiStreamingWarmup: (options) =>
@@ -307,10 +299,6 @@ contextBridge.exposeInMainWorld("electronAPI", {
   onDeepgramFinalTranscript: registerListener("deepgram-final-transcript", (callback) => (_event, text) => callback(text)),
   onDeepgramError: registerListener("deepgram-error", (callback) => (_event, error) => callback(error)),
   onDeepgramSessionEnd: registerListener("deepgram-session-end", (callback) => (_event, data) => callback(data)),
-
-  // Usage limit events (for showing UpgradePrompt in ControlPanel)
-  notifyLimitReached: (data) => ipcRenderer.send("limit-reached", data),
-  onLimitReached: registerListener("limit-reached", (callback) => (_event, data) => callback(data)),
 
   // Globe key listener for hotkey capture (macOS only)
   onGlobeKeyPressed: (callback) => {
