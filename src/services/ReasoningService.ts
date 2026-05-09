@@ -1234,62 +1234,7 @@ class ReasoningService extends BaseReasoningService {
     }
   }
 
-  private async processWithOpenWhispr(
-    text: string,
-    model: string,
-    agentName: string | null = null,
-    config: ReasoningConfig = {}
-  ): Promise<string> {
-    logger.logReasoning("OPENWHISPR_START", { model, agentName });
 
-    if (this.isProcessing) {
-      throw new Error("Already processing a request");
-    }
-
-    this.isProcessing = true;
-
-    try {
-      const customDictionary = this.getCustomDictionary();
-      const language = this.getPreferredLanguage();
-      const locale = this.getUiLanguage();
-
-      // Use withSessionRefresh to handle AUTH_EXPIRED automatically
-      const result = await withSessionRefresh(async () => {
-        const res = await (window as any).electronAPI.cloudReason(text, {
-          model,
-          agentName,
-          customDictionary,
-          customPrompt: this.getCustomPrompt(),
-          language,
-          locale,
-        });
-
-        if (!res.success) {
-          const err: any = new Error(res.error || "ChordVox cloud reasoning failed");
-          err.code = res.code;
-          throw err;
-        }
-
-        return res;
-      });
-
-      logger.logReasoning("OPENWHISPR_SUCCESS", {
-        model: result.model,
-        provider: result.provider,
-        resultLength: result.text.length,
-      });
-
-      return result.text;
-    } catch (error) {
-      logger.logReasoning("OPENWHISPR_ERROR", {
-        model,
-        error: (error as Error).message,
-      });
-      throw error;
-    } finally {
-      this.isProcessing = false;
-    }
-  }
 
   protected getCustomDictionary(): string[] {
     try {

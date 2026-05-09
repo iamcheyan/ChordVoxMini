@@ -14,6 +14,10 @@ function isRightSideModifier(hotkey) {
   return RIGHT_SIDE_MODIFIER_PATTERN.test(hotkey);
 }
 
+function isJisKey(hotkey) {
+  return process.platform === "darwin" && (hotkey === "Kana" || hotkey === "Eisu");
+}
+
 // Modifier-only combos (e.g. "Control+Super") bypass globalShortcut on Windows
 // and use the native low-level keyboard hook instead.
 const MODIFIER_NAMES = new Set([
@@ -120,6 +124,7 @@ class HotkeyManager {
       hotkey === this.currentHotkey &&
       hotkey !== "GLOBE" &&
       !isRightSideModifier(hotkey) &&
+      !isJisKey(hotkey) &&
       !isModifierOnlyHotkey(hotkey) &&
       globalShortcut.isRegistered(checkAccelerator)
     ) {
@@ -136,6 +141,7 @@ class HotkeyManager {
       this.currentHotkey &&
       this.currentHotkey !== "GLOBE" &&
       !isRightSideModifier(this.currentHotkey) &&
+      !isJisKey(this.currentHotkey) &&
       !isModifierOnlyHotkey(this.currentHotkey)
     ) {
       const prevAccelerator = this.currentHotkey.startsWith("Fn+")
@@ -171,6 +177,13 @@ class HotkeyManager {
         debugLogger.log(
           `[HotkeyManager] Right-side modifier "${hotkey}" set - using native listener`
         );
+        return { success: true, hotkey };
+      }
+
+      // JIS keys (Kana/Eisu) are handled by native listeners on macOS
+      if (isJisKey(hotkey)) {
+        this.currentHotkey = hotkey;
+        debugLogger.log(`[HotkeyManager] JIS key "${hotkey}" set - using native listener`);
         return { success: true, hotkey };
       }
 

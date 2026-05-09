@@ -64,15 +64,27 @@ class ModelManager {
       );
     }
 
-    this.modelsDir = this.getModelsDir();
+    this.refreshConfig();
     this._initialized = true;
+  }
+
+  refreshConfig() {
+    this.modelsDir = this.getModelsDir();
     // Don't await - let this run in background
     this.ensureModelsDirExists();
-    cleanupStaleDownloads(this.modelsDir);
+    if (this.modelsDir) {
+      cleanupStaleDownloads(this.modelsDir);
+    }
   }
 
   getModelsDir() {
     const os = require("os");
+    
+    // Respect the environment variable if set
+    if (process.env.LOCAL_MODELS_DIR) {
+      return path.join(process.env.LOCAL_MODELS_DIR, "llm-models");
+    }
+
     // Use os.homedir() as fallback if app.getPath fails
     const homeDir = app.isReady() ? app.getPath("home") : os.homedir();
     return path.join(homeDir, ".cache", "chordvox", "models");

@@ -53,6 +53,14 @@ class GlobeKeyManager extends EventEmitter {
             this.emit("globe-down");
           } else if (line === "FN_UP") {
             this.emit("globe-up");
+          } else if (line === "JIS_EISU_DOWN") {
+            this.emit("jis-eisu-down");
+          } else if (line === "JIS_EISU_UP") {
+            this.emit("jis-eisu-up");
+          } else if (line === "JIS_KANA_DOWN") {
+            this.emit("jis-kana-down");
+          } else if (line === "JIS_KANA_UP") {
+            this.emit("jis-kana-up");
           } else if (line.startsWith("RIGHT_MOD_DOWN:")) {
             const modifier = line.replace("RIGHT_MOD_DOWN:", "").trim();
             if (modifier) {

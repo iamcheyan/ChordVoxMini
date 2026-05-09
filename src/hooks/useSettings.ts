@@ -23,6 +23,8 @@ export interface TranscriptionSettings {
   parakeetModel: string;
   senseVoiceModelPath: string;
   senseVoiceBinaryPath: string;
+  paraformerModelPath: string;
+  paraformerBinaryPath: string;
   allowOpenAIFallback: boolean;
   allowLocalFallback: boolean;
   fallbackWhisperModel: string;
@@ -33,6 +35,7 @@ export interface TranscriptionSettings {
   cloudTranscriptionMode: string;
   customDictionary: string[];
   assemblyAiStreaming: boolean;
+  localModelsDir?: string;
 }
 
 export interface ReasoningSettings {
@@ -55,6 +58,8 @@ export interface SecondaryHotkeyProfile {
   parakeetModel: string;
   senseVoiceModelPath: string;
   senseVoiceBinaryPath: string;
+  paraformerModelPath: string;
+  paraformerBinaryPath: string;
   allowOpenAIFallback: boolean;
   allowLocalFallback: boolean;
   fallbackWhisperModel: string;
@@ -93,6 +98,10 @@ export interface PrivacySettings {
 
 export interface ThemeSettings {
   theme: "light" | "dark" | "auto";
+}
+
+export interface ModelSettings {
+  localModelsDir: string;
 }
 
 const LANGUAGE_MIGRATIONS: Record<string, string> = { zh: "zh-CN" };
@@ -145,6 +154,24 @@ function useSettingsInternal() {
 
   const [senseVoiceBinaryPath, setSenseVoiceBinaryPath] = useLocalStorage(
     "senseVoiceBinaryPath",
+    "",
+    {
+      serialize: String,
+      deserialize: String,
+    }
+  );
+
+  const [paraformerModelPath, setParaformerModelPath] = useLocalStorage(
+    "paraformerModelPath",
+    "",
+    {
+      serialize: String,
+      deserialize: String,
+    }
+  );
+
+  const [paraformerBinaryPath, setParaformerBinaryPath] = useLocalStorage(
+    "paraformerBinaryPath",
     "",
     {
       serialize: String,
@@ -449,6 +476,11 @@ function useSettingsInternal() {
     }
   );
 
+  const [localModelsDir, setLocalModelsDirLocal] = useLocalStorage("localModelsDir", "", {
+    serialize: String,
+    deserialize: String,
+  });
+
   // Custom endpoint API keys - synced to .env like other keys
   const [customTranscriptionApiKey, setCustomTranscriptionApiKeyLocal] = useLocalStorage(
     "customTranscriptionApiKey",
@@ -509,6 +541,10 @@ function useSettingsInternal() {
       if (!customReasoningApiKey) {
         const envKey = await window.electronAPI.getCustomReasoningKey?.();
         if (envKey) setCustomReasoningApiKeyLocal(envKey);
+      }
+      if (!localModelsDir) {
+        const envDir = await window.electronAPI.getLocalModelsDir?.();
+        if (envDir) setLocalModelsDirLocal(envDir);
       }
     };
 
@@ -714,7 +750,7 @@ function useSettingsInternal() {
           cloudReasoningMode:
             typeof parsed.cloudReasoningMode === "string"
               ? parsed.cloudReasoningMode
-              : "openwhispr",
+              : "byok",
         } satisfies SecondaryHotkeyProfile;
       } catch {
         return null;
@@ -737,6 +773,8 @@ function useSettingsInternal() {
       parakeetModel,
       senseVoiceModelPath,
       senseVoiceBinaryPath,
+      paraformerModelPath,
+      paraformerBinaryPath,
       allowOpenAIFallback,
       allowLocalFallback,
       fallbackWhisperModel,
@@ -759,6 +797,8 @@ function useSettingsInternal() {
     parakeetModel,
     senseVoiceModelPath,
     senseVoiceBinaryPath,
+    paraformerModelPath,
+    paraformerBinaryPath,
     allowOpenAIFallback,
     allowLocalFallback,
     fallbackWhisperModel,
@@ -872,6 +912,8 @@ function useSettingsInternal() {
       model = parakeetModel;
     } else if (localTranscriptionProvider === "sensevoice") {
       model = senseVoiceModelPath;
+    } else if (localTranscriptionProvider === "paraformer") {
+      model = paraformerModelPath;
     }
 
     window.electronAPI
@@ -883,8 +925,13 @@ function useSettingsInternal() {
           localTranscriptionProvider === "sensevoice" && senseVoiceBinaryPath
             ? senseVoiceBinaryPath
             : undefined,
+        paraformerBinaryPath:
+          localTranscriptionProvider === "paraformer" && paraformerBinaryPath
+            ? paraformerBinaryPath
+            : undefined,
         reasoningProvider,
         reasoningModel: reasoningProvider === "local" ? reasoningModel : undefined,
+        localModelsDir: localModelsDir || undefined,
       })
       .catch((err) =>
         logger.warn(
@@ -900,8 +947,11 @@ function useSettingsInternal() {
     parakeetModel,
     senseVoiceModelPath,
     senseVoiceBinaryPath,
+    paraformerModelPath,
+    paraformerBinaryPath,
     reasoningProvider,
     reasoningModel,
+    localModelsDir,
   ]);
 
   // Batch operations
@@ -941,6 +991,8 @@ function useSettingsInternal() {
       setParakeetModel,
       setSenseVoiceModelPath,
       setSenseVoiceBinaryPath,
+      setParaformerModelPath,
+      setParaformerBinaryPath,
       setAllowOpenAIFallback,
       setAllowLocalFallback,
       setFallbackWhisperModel,
@@ -989,6 +1041,7 @@ function useSettingsInternal() {
       setGeminiApiKey,
       setGroqApiKey,
       setMistralApiKey,
+      setLocalModelsDirLocal,
     ]
   );
 
@@ -1000,6 +1053,8 @@ function useSettingsInternal() {
     parakeetModel,
     senseVoiceModelPath,
     senseVoiceBinaryPath,
+    paraformerModelPath,
+    paraformerBinaryPath,
     allowOpenAIFallback,
     allowLocalFallback,
     fallbackWhisperModel,
@@ -1026,6 +1081,7 @@ function useSettingsInternal() {
     dictationKeySecondary,
     secondaryHotkeyProfile,
     theme,
+    localModelsDir,
     setUseLocalWhisper,
     setWhisperModel,
     setUiLanguage,
@@ -1033,6 +1089,8 @@ function useSettingsInternal() {
     setParakeetModel,
     setSenseVoiceModelPath,
     setSenseVoiceBinaryPath,
+    setParaformerModelPath,
+    setParaformerBinaryPath,
     setAllowOpenAIFallback,
     setAllowLocalFallback,
     setFallbackWhisperModel,
@@ -1062,6 +1120,13 @@ function useSettingsInternal() {
     setSecondaryHotkeyProfile,
     captureSecondaryHotkeyProfileFromCurrent,
     setTheme,
+    setLocalModelsDir: useCallback(
+      (dir: string) => {
+        setLocalModelsDirLocal(dir);
+        window.electronAPI?.saveLocalModelsDir?.(dir);
+      },
+      [setLocalModelsDirLocal]
+    ),
     activationMode,
     setActivationMode,
     audioCuesEnabled,

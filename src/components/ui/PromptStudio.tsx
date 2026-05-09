@@ -36,7 +36,7 @@ const PROVIDER_CONFIG: Record<string, ProviderConfig> = {
   anthropic: { label: "Anthropic", apiKeyStorageKey: "anthropicApiKey" },
   gemini: { label: "Gemini", apiKeyStorageKey: "geminiApiKey" },
   groq: { label: "Groq", apiKeyStorageKey: "groqApiKey" },
-  openwhispr: { label: "ChordVox Cloud" },
+
   custom: {
     label: "Custom endpoint",
     apiKeyStorageKey: "openaiApiKey",
@@ -140,14 +140,12 @@ export default function PromptStudio({ className = "" }: PromptStudioProps) {
 
     try {
       const useReasoningModel = localStorage.getItem("useReasoningModel") === "true";
-      const cloudReasoningMode = localStorage.getItem("cloudReasoningMode") || "openwhispr";
-      const isSignedIn = localStorage.getItem("isSignedIn") === "true";
-      const isCloudMode = isSignedIn && cloudReasoningMode === "openwhispr";
+      const cloudReasoningMode = "byok";
+      const isSignedIn = false;
+      const isCloudMode = false;
 
       const reasoningModel = localStorage.getItem("reasoningModel") || "";
-      const reasoningProvider = isCloudMode
-        ? "openwhispr"
-        : reasoningModel
+      const reasoningProvider = reasoningModel
           ? getModelProvider(reasoningModel)
           : "openai";
 
@@ -194,8 +192,7 @@ export default function PromptStudio({ className = "" }: PromptStudioProps) {
         }
       }
 
-      // Cloud mode doesn't require a specific model — pass a placeholder if none is set
-      const modelToUse = isCloudMode ? reasoningModel || "auto" : reasoningModel;
+      const modelToUse = reasoningModel;
 
       const currentCustomPrompt = localStorage.getItem("customUnifiedPrompt");
       localStorage.setItem("customUnifiedPrompt", JSON.stringify(editedPrompt));
@@ -376,23 +373,19 @@ export default function PromptStudio({ className = "" }: PromptStudioProps) {
         {activeTab === "test" &&
           (() => {
             const useReasoningModel = localStorage.getItem("useReasoningModel") === "true";
-            const cloudReasoningMode = localStorage.getItem("cloudReasoningMode") || "openwhispr";
-            const isSignedIn = localStorage.getItem("isSignedIn") === "true";
-            const isCloudMode = isSignedIn && cloudReasoningMode === "openwhispr";
+            const cloudReasoningMode = "byok";
+            const isSignedIn = false;
+            const isCloudMode = false;
 
             const reasoningModel = localStorage.getItem("reasoningModel") || "";
-            const reasoningProvider = isCloudMode
-              ? "openwhispr"
-              : reasoningModel
+            const reasoningProvider = reasoningModel
                 ? getModelProvider(reasoningModel)
                 : "openai";
             const providerConfig = PROVIDER_CONFIG[reasoningProvider] || {
               label: reasoningProvider.charAt(0).toUpperCase() + reasoningProvider.slice(1),
             };
 
-            const displayModel = isCloudMode
-              ? t("promptStudio.test.openwhisprCloud")
-              : reasoningModel || t("promptStudio.test.none");
+            const displayModel = reasoningModel || t("promptStudio.test.none");
             const displayProvider = providerConfig.label;
 
             return (

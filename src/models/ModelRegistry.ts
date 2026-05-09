@@ -107,8 +107,23 @@ export interface SenseVoiceModelInfo {
 
 export type SenseVoiceModelsMap = Record<string, SenseVoiceModelInfo>;
 
+export interface ParaformerModelInfo {
+  name: string;
+  description: string;
+  descriptionKey?: string;
+  size: string;
+  sizeMb: number;
+  language: string;
+  recommended?: boolean;
+  downloadUrl: string;
+  extractDir: string;
+}
+
+export type ParaformerModelsMap = Record<string, ParaformerModelInfo>;
+
 interface ModelRegistryData {
   parakeetModels: ParakeetModelsMap;
+  paraformerModels: ParaformerModelsMap;
   senseVoiceModels: SenseVoiceModelsMap;
   whisperModels: WhisperModelsMap;
   transcriptionProviders: TranscriptionProviderData[];
@@ -264,17 +279,7 @@ export function getReasoningModelLabel(modelId: string): string {
   const model = getAllReasoningModels().find((m) => m.value === modelId);
   return model?.fullLabel || modelId;
 }
-
 export function getModelProvider(modelId: string): string {
-  // When in OpenWhispr cloud mode, route reasoning through the cloud API
-  if (typeof localStorage !== "undefined") {
-    const cloudMode = localStorage.getItem("cloudReasoningMode");
-    const isSignedIn = localStorage.getItem("isSignedIn") === "true";
-    if (cloudMode === "openwhispr" && isSignedIn) {
-      return "openwhispr";
-    }
-  }
-
   // If the user explicitly selected "bedrock" as their provider, trust that selection.
   // Bedrock hosts many third-party models (e.g. moonshotai.kimi-k2.5, nvidia.nemotron-*)
   // whose IDs don't match any hardcoded pattern.
@@ -384,6 +389,8 @@ export function getSenseVoiceModelInfo(modelId: string): SenseVoiceModelInfo | u
 }
 
 export const SENSEVOICE_MODEL_INFO = modelData.senseVoiceModels;
+
+export const PARAFORMER_MODEL_INFO = modelData.paraformerModels;
 
 export function getWhisperModelConfig(modelId: string): WhisperModelConfig | null {
   const modelInfo = modelData.whisperModels[modelId];

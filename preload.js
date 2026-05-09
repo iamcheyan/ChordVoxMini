@@ -127,6 +127,24 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.invoke("pick-sensevoice-model-file", defaultPath),
   pickSenseVoiceBinary: (defaultPath) => ipcRenderer.invoke("pick-sensevoice-binary", defaultPath),
 
+  // Local Paraformer (external CLI + local ONNX model)
+  transcribeLocalParaformer: (audioBlob, options) =>
+    ipcRenderer.invoke("transcribe-local-paraformer", audioBlob, options),
+  checkParaformerInstallation: (binaryPath) =>
+    ipcRenderer.invoke("check-paraformer-installation", binaryPath),
+  downloadParaformerModel: (modelName) => ipcRenderer.invoke("download-paraformer-model", modelName),
+  onParaformerDownloadProgress: registerListener("paraformer-download-progress"),
+  checkParaformerModelStatus: (modelPath) =>
+    ipcRenderer.invoke("check-paraformer-model-status", modelPath),
+  listParaformerModels: () => ipcRenderer.invoke("list-paraformer-models"),
+  deleteParaformerModel: (modelName) => ipcRenderer.invoke("delete-paraformer-model", modelName),
+  deleteAllParaformerModels: () => ipcRenderer.invoke("delete-all-paraformer-models"),
+  cancelParaformerDownload: () => ipcRenderer.invoke("cancel-paraformer-download"),
+  pickParaformerModelFile: (defaultPath) =>
+    ipcRenderer.invoke("pick-paraformer-model-file", defaultPath),
+  pickParaformerBinary: (defaultPath) => ipcRenderer.invoke("pick-paraformer-binary", defaultPath),
+  pickModelsDirectory: (defaultPath) => ipcRenderer.invoke("pick-models-directory", defaultPath),
+
   // Parakeet server functions (faster repeated transcriptions)
   parakeetServerStart: (modelName) => ipcRenderer.invoke("parakeet-server-start", modelName),
   parakeetServerStop: () => ipcRenderer.invoke("parakeet-server-stop"),

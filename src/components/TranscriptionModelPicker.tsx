@@ -17,6 +17,7 @@ import {
   WHISPER_MODEL_INFO,
   PARAKEET_MODEL_INFO,
   SENSEVOICE_MODEL_INFO,
+  PARAFORMER_MODEL_INFO,
 } from "../models/ModelRegistry";
 import {
   MODEL_PICKER_COLORS,
@@ -195,6 +196,10 @@ interface TranscriptionModelPickerProps {
   setSenseVoiceModelPath?: (path: string) => void;
   senseVoiceBinaryPath?: string;
   setSenseVoiceBinaryPath?: (path: string) => void;
+  paraformerModelPath?: string;
+  setParaformerModelPath?: (path: string) => void;
+  paraformerBinaryPath?: string;
+  setParaformerBinaryPath?: (path: string) => void;
   openaiApiKey: string;
   setOpenaiApiKey: (key: string) => void;
   groqApiKey: string;
@@ -222,6 +227,7 @@ const LOCAL_PROVIDER_TABS: Array<{ id: string; name: string; disabled?: boolean 
   { id: "whisper", name: "OpenAI Whisper" },
   { id: "nvidia", name: "NVIDIA Parakeet" },
   { id: "sensevoice", name: "SenseVoice" },
+  { id: "paraformer", name: "Paraformer" },
 ];
 
 function isLikelyPathInput(value: string) {
@@ -280,6 +286,10 @@ export default function TranscriptionModelPicker({
   setSenseVoiceModelPath,
   senseVoiceBinaryPath = "",
   setSenseVoiceBinaryPath,
+  paraformerModelPath = "",
+  setParaformerModelPath,
+  paraformerBinaryPath = "",
+  setParaformerBinaryPath,
   openaiApiKey,
   setOpenaiApiKey,
   groqApiKey,
@@ -297,10 +307,12 @@ export default function TranscriptionModelPicker({
   const [localModels, setLocalModels] = useState<LocalModel[]>([]);
   const [parakeetModels, setParakeetModels] = useState<LocalModel[]>([]);
   const [senseVoiceModels, setSenseVoiceModels] = useState<LocalModel[]>([]);
+  const [paraformerModels, setParaformerModels] = useState<LocalModel[]>([]);
   const [internalLocalProvider, setInternalLocalProvider] = useState(selectedLocalProvider);
   const hasLoadedRef = useRef(false);
   const hasLoadedParakeetRef = useRef(false);
   const hasLoadedSenseVoiceRef = useRef(false);
+  const hasLoadedParaformerRef = useRef(false);
 
   useEffect(() => {
     if (selectedLocalProvider !== internalLocalProvider) {
@@ -310,9 +322,11 @@ export default function TranscriptionModelPicker({
   const isLoadingRef = useRef(false);
   const isLoadingParakeetRef = useRef(false);
   const isLoadingSenseVoiceRef = useRef(false);
+  const isLoadingParaformerRef = useRef(false);
   const loadLocalModelsRef = useRef<(() => Promise<void>) | null>(null);
   const loadParakeetModelsRef = useRef<(() => Promise<void>) | null>(null);
   const loadSenseVoiceModelsRef = useRef<(() => Promise<void>) | null>(null);
+  const loadParaformerModelsRef = useRef<(() => Promise<void>) | null>(null);
   const ensureValidCloudSelectionRef = useRef<(() => void) | null>(null);
   const selectedLocalModelRef = useRef(selectedLocalModel);
   const onLocalModelSelectRef = useRef(onLocalModelSelect);
@@ -399,6 +413,23 @@ export default function TranscriptionModelPicker({
     }
   }, []);
 
+  const loadParaformerModels = useCallback(async () => {
+    if (isLoadingParaformerRef.current) return;
+    isLoadingParaformerRef.current = true;
+
+    try {
+      const result = await window.electronAPI?.listParaformerModels();
+      if (result?.success) {
+        setParaformerModels(result.models);
+      }
+    } catch (error) {
+      console.error("[TranscriptionModelPicker] Failed to load Paraformer models:", error);
+      setParaformerModels([]);
+    } finally {
+      isLoadingParaformerRef.current = false;
+    }
+  }, []);
+
   const ensureValidCloudSelection = useCallback(() => {
     const isValidProvider = VALID_CLOUD_PROVIDER_IDS.includes(selectedCloudProvider);
 
@@ -446,6 +477,9 @@ export default function TranscriptionModelPicker({
     loadSenseVoiceModelsRef.current = loadSenseVoiceModels;
   }, [loadSenseVoiceModels]);
   useEffect(() => {
+    loadParaformerModelsRef.current = loadParaformerModels;
+  }, [loadParaformerModels]);
+  useEffect(() => {
     ensureValidCloudSelectionRef.current = ensureValidCloudSelection;
   }, [ensureValidCloudSelection]);
 
@@ -461,6 +495,9 @@ export default function TranscriptionModelPicker({
     } else if (internalLocalProvider === "sensevoice" && !hasLoadedSenseVoiceRef.current) {
       hasLoadedSenseVoiceRef.current = true;
       loadSenseVoiceModelsRef.current?.();
+    } else if (internalLocalProvider === "paraformer" && !hasLoadedParaformerRef.current) {
+      hasLoadedParaformerRef.current = true;
+      loadParaformerModelsRef.current?.();
     }
   }, [useLocalWhisper, internalLocalProvider]);
 
@@ -470,6 +507,7 @@ export default function TranscriptionModelPicker({
     hasLoadedRef.current = false;
     hasLoadedParakeetRef.current = false;
     hasLoadedSenseVoiceRef.current = false;
+    hasLoadedParaformerRef.current = false;
     ensureValidCloudSelectionRef.current?.();
   }, [useLocalWhisper]);
 
@@ -478,9 +516,10 @@ export default function TranscriptionModelPicker({
       loadLocalModels();
       loadParakeetModels();
       loadSenseVoiceModels();
+      loadParaformerModels();
     };
-    window.addEventListener("openwhispr-models-cleared", handleModelsCleared);
-    return () => window.removeEventListener("openwhispr-models-cleared", handleModelsCleared);
+    window.addEventListener("local-models-cleared", handleModelsCleared);
+    return () => window.removeEventListener("local-models-cleared", handleModelsCleared);
   }, [loadLocalModels, loadParakeetModels, loadSenseVoiceModels]);
 
   const {
@@ -523,6 +562,20 @@ export default function TranscriptionModelPicker({
   } = useModelDownload({
     modelType: "sensevoice",
     onDownloadComplete: loadSenseVoiceModels,
+  });
+
+  const {
+    downloadingModel: downloadingParaformerModel,
+    downloadProgress: paraformerDownloadProgress,
+    downloadModel: downloadParaformerModel,
+    deleteModel: deleteParaformerModel,
+    isDownloadingModel: isDownloadingParaformerModel,
+    isInstalling: isInstallingParaformer,
+    cancelDownload: cancelParaformerDownload,
+    isCancelling: isCancellingParaformer,
+  } = useModelDownload({
+    modelType: "paraformer",
+    onDownloadComplete: loadParaformerModels,
   });
 
   const handleModeChange = useCallback(
@@ -753,6 +806,86 @@ export default function TranscriptionModelPicker({
     }
   }, [senseVoiceBinaryPath, handleSenseVoiceBinaryPathChange]);
 
+  const selectedParaformerModelId = useMemo(() => {
+    const currentPath = String(paraformerModelPath || "").trim().toLowerCase();
+    if (!currentPath) return "";
+
+    const fromLoaded = paraformerModels.find((model) => {
+      const candidatePath = String(model.modelPath || model.path || "")
+        .trim()
+        .toLowerCase();
+      return candidatePath && candidatePath === currentPath;
+    });
+    if (fromLoaded?.model) return fromLoaded.model;
+
+    return "";
+  }, [paraformerModelPath, paraformerModels]);
+
+  const handleParaformerModelPathChange = useCallback(
+    (value: string) => {
+      setParaformerModelPath?.(value);
+      onLocalProviderSelect?.("paraformer");
+      setInternalLocalProvider("paraformer");
+      onLocalModelSelect(value, "paraformer");
+    },
+    [onLocalModelSelect, onLocalProviderSelect, setParaformerModelPath]
+  );
+
+  const handleParaformerModelSelect = useCallback(
+    async (modelId: string) => {
+      onLocalProviderSelect?.("paraformer");
+      setInternalLocalProvider("paraformer");
+
+      try {
+        const status = await window.electronAPI?.checkParaformerModelStatus(modelId);
+        if (status?.downloaded && status.modelPath) {
+          handleParaformerModelPathChange(status.modelPath);
+          return;
+        }
+      } catch (error) {
+        console.error("[TranscriptionModelPicker] Failed to resolve Paraformer model path:", error);
+      }
+
+      const fallback = paraformerModels.find((model) => model.model === modelId);
+      const fallbackPath = fallback?.modelPath || fallback?.path || "";
+      if (fallbackPath) {
+        handleParaformerModelPathChange(fallbackPath);
+      }
+    },
+    [handleParaformerModelPathChange, onLocalProviderSelect, paraformerModels]
+  );
+
+  const handleParaformerBinaryPathChange = useCallback(
+    (value: string) => {
+      setParaformerBinaryPath?.(value);
+      onLocalProviderSelect?.("paraformer");
+      setInternalLocalProvider("paraformer");
+    },
+    [onLocalProviderSelect, setParaformerBinaryPath]
+  );
+
+  const handlePickParaformerModel = useCallback(async () => {
+    try {
+      const result = await window.electronAPI?.pickParaformerModelFile?.(paraformerModelPath);
+      if (result?.success && result.path) {
+        handleParaformerModelPathChange(result.path);
+      }
+    } catch (error) {
+      console.error("[TranscriptionModelPicker] Failed to pick Paraformer model:", error);
+    }
+  }, [paraformerModelPath, handleParaformerModelPathChange]);
+
+  const handlePickParaformerBinary = useCallback(async () => {
+    try {
+      const result = await window.electronAPI?.pickParaformerBinary?.(paraformerBinaryPath);
+      if (result?.success && result.path) {
+        handleParaformerBinaryPathChange(result.path);
+      }
+    } catch (error) {
+      console.error("[TranscriptionModelPicker] Failed to pick Paraformer binary:", error);
+    }
+  }, [paraformerBinaryPath, handleParaformerBinaryPathChange]);
+
   const handleBaseUrlBlur = useCallback(() => {
     if (!setCloudTranscriptionBaseUrl || selectedCloudProvider !== "custom") return;
 
@@ -858,6 +991,17 @@ export default function TranscriptionModelPicker({
       );
     }
 
+    if (downloadingParaformerModel && internalLocalProvider === "paraformer") {
+      const modelInfo = PARAFORMER_MODEL_INFO[downloadingParaformerModel];
+      return (
+        <DownloadProgressBar
+          modelName={modelInfo?.name || downloadingParaformerModel}
+          progress={paraformerDownloadProgress}
+          isInstalling={isInstallingParaformer}
+        />
+      );
+    }
+
     return null;
   }, [
     downloadingModel,
@@ -869,6 +1013,9 @@ export default function TranscriptionModelPicker({
     downloadingSenseVoiceModel,
     senseVoiceDownloadProgress,
     isInstallingSenseVoice,
+    downloadingParaformerModel,
+    paraformerDownloadProgress,
+    isInstallingParaformer,
     useLocalWhisper,
     internalLocalProvider,
   ]);
@@ -1092,6 +1239,34 @@ export default function TranscriptionModelPicker({
     ]
   );
 
+  const handleParaformerDelete = useCallback(
+    (modelId: string) => {
+      showConfirmDialog({
+        title: t("transcription.deleteModel.title"),
+        description: t("transcription.deleteModel.description"),
+        onConfirm: async () => {
+          await deleteParaformerModel(modelId, async () => {
+            const result = await window.electronAPI?.listParaformerModels();
+            if (result?.success) {
+              setParaformerModels(result.models);
+              if (selectedParaformerModelId === modelId) {
+                handleParaformerModelPathChange("");
+              }
+            }
+          });
+        },
+        variant: "destructive",
+      });
+    },
+    [
+      showConfirmDialog,
+      deleteParaformerModel,
+      handleParaformerModelPathChange,
+      selectedParaformerModelId,
+      t,
+    ]
+  );
+
   const renderSenseVoiceModels = () => {
     const modelsToRender =
       senseVoiceModels.length === 0
@@ -1189,6 +1364,114 @@ export default function TranscriptionModelPicker({
               variant="outline"
               className="h-8 px-2 text-xs"
               onClick={handlePickSenseVoiceBinary}
+            >
+              Browse
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderParaformerModels = () => {
+    const modelsToRender =
+      paraformerModels.length === 0
+        ? Object.entries(PARAFORMER_MODEL_INFO).map(([modelId, info]) => ({
+            model: modelId,
+            downloaded: false,
+            size_mb: info.sizeMb,
+          }))
+        : paraformerModels;
+
+    return (
+      <div className="space-y-2">
+        <div className="space-y-0.5">
+          {modelsToRender.map((model) => {
+            const modelId = model.model;
+            const info = PARAFORMER_MODEL_INFO[modelId] ?? {
+              name: modelId,
+              description: t("common.unknown"),
+              size: t("common.unknown"),
+              language: "zh/en",
+              recommended: false,
+            };
+
+            return (
+              <LocalModelCard
+                key={modelId}
+                modelId={modelId}
+                name={info.name}
+                description={info.description}
+                size={info.size}
+                actualSizeMb={model.size_mb}
+                isSelected={modelId === selectedParaformerModelId}
+                isDownloaded={model.downloaded ?? false}
+                isDownloading={isDownloadingParaformerModel(modelId)}
+                isCancelling={isCancellingParaformer}
+                recommended={info.recommended}
+                provider="paraformer"
+                languageLabel={info.language}
+                onSelect={() => {
+                  void handleParaformerModelSelect(modelId);
+                }}
+                onDelete={() => handleParaformerDelete(modelId)}
+                onDownload={() =>
+                  downloadParaformerModel(modelId, (downloadedId) => {
+                    setParaformerModels((prev) =>
+                      prev.map((m) => (m.model === downloadedId ? { ...m, downloaded: true } : m))
+                    );
+                    void handleParaformerModelSelect(downloadedId);
+                  })
+                }
+                onCancel={cancelParaformerDownload}
+                styles={styles}
+              />
+            );
+          })}
+        </div>
+
+        <div className="rounded-md border border-border/50 bg-muted/20 px-2.5 py-2">
+          <p className="text-[11px] text-muted-foreground leading-relaxed">
+            Download Paraformer-Large model for Chinese/English transcription, or choose a local model directory.
+          </p>
+        </div>
+
+        <div className="space-y-1.5">
+          <label className="text-xs font-medium text-foreground">Paraformer Model Directory</label>
+          <div className="flex items-center gap-1.5">
+            <Input
+              value={paraformerModelPath}
+              onChange={(e) => handleParaformerModelPathChange(e.target.value)}
+              placeholder="/path/to/paraformer-large-zh"
+              className="h-8 text-sm"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              className="h-8 px-2 text-xs"
+              onClick={handlePickParaformerModel}
+            >
+              Browse
+            </Button>
+          </div>
+        </div>
+
+        <div className="space-y-1.5">
+          <label className="text-xs font-medium text-foreground">
+            Paraformer Binary (paraformer-main)
+          </label>
+          <div className="flex items-center gap-1.5">
+            <Input
+              value={paraformerBinaryPath}
+              onChange={(e) => handleParaformerBinaryPathChange(e.target.value)}
+              placeholder="/path/to/paraformer-main"
+              className="h-8 text-sm"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              className="h-8 px-2 text-xs"
+              onClick={handlePickParaformerBinary}
             >
               Browse
             </Button>
@@ -1316,6 +1599,7 @@ export default function TranscriptionModelPicker({
             {internalLocalProvider === "whisper" && renderLocalModels()}
             {internalLocalProvider === "nvidia" && renderParakeetModels()}
             {internalLocalProvider === "sensevoice" && renderSenseVoiceModels()}
+            {internalLocalProvider === "paraformer" && renderParaformerModels()}
           </div>
         </div>
       )}

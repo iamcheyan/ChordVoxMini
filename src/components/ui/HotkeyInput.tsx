@@ -126,6 +126,13 @@ const CODE_TO_KEY: Record<string, string> = {
   MediaStop: "MediaStop",
   MediaTrackNext: "MediaNextTrack",
   MediaTrackPrevious: "MediaPreviousTrack",
+  // Japanese JIS keys
+  Lang1: "Kana",
+  Lang2: "Eisu",
+  KanaMode: "Kana",
+  Eisu: "Eisu",
+  Convert: "Convert",
+  NonConvert: "NonConvert",
 };
 
 const MODIFIER_CODES = new Set([

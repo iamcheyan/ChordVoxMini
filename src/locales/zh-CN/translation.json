@@ -945,7 +945,10 @@
           "description": "请配置你的服务商和 API Key。",
           "title": "已切换到自定义设置"
         }
-      }
+      },
+      "localModelStorage": "本地模型存储位置",
+      "localModelStorageDescription": "本地模型存放在此目录。实时模型存放在 streaming-models 子目录。",
+      "selectDirectory": "选择目录"
     },
     "developer": {
       "clearCache": "清除缓存",

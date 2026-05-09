@@ -45,6 +45,10 @@ class ModelManager {
   }
 
   private getModelsDir(): string {
+    const customRoot = process.env.LOCAL_MODELS_DIR;
+    if (customRoot) {
+      return path.join(customRoot, "models");
+    }
     const homeDir = app.getPath("home");
     return path.join(homeDir, ".cache", "chordvox", "models");
   }

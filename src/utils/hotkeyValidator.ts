@@ -9,7 +9,8 @@ export type ValidationErrorCode =
   | "LEFT_MODIFIER_ONLY"
   | "DUPLICATE"
   | "RESERVED"
-  | "INVALID_GLOBE";
+  | "INVALID_GLOBE"
+  | "JIS_KEY";
 
 export interface ValidationResult {
   valid: boolean;
@@ -525,6 +526,17 @@ export function validateHotkey(
       };
     }
     return { valid: true };
+  }
+
+  // JIS keyboard Kana/Eisu keys are consumed by macOS input method system
+  // and cannot be captured by CGEvent taps. Suggest Karabiner-Elements remapping.
+  if (hotkey === "Kana" || hotkey === "Eisu") {
+    return {
+      valid: false,
+      error:
+        "JIS Kana/Eisu keys are intercepted by macOS input method system and cannot be used as global hotkeys. Use Karabiner-Elements to remap to F18/F19, then set that as your hotkey.",
+      errorCode: "JIS_KEY",
+    };
   }
 
   const parts = hotkey

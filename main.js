@@ -108,6 +108,7 @@ const ClipboardManager = require("./src/helpers/clipboard");
 const WhisperManager = require("./src/helpers/whisper");
 const ParakeetManager = require("./src/helpers/parakeet");
 const SenseVoiceManager = require("./src/helpers/sensevoice");
+const ParaformerManager = require("./src/helpers/paraformer");
 const TrayManager = require("./src/helpers/tray");
 const IPCHandlers = require("./src/helpers/ipcHandlers");
 const UpdateManager = require("./src/updater");
@@ -126,6 +127,7 @@ let clipboardManager = null;
 let whisperManager = null;
 let parakeetManager = null;
 let senseVoiceManager = null;
+let paraformerManager = null;
 let trayManager = null;
 let updateManager = null;
 let globeKeyManager = null;
@@ -173,6 +175,7 @@ function initializeCoreManagers() {
   whisperManager = new WhisperManager();
   parakeetManager = new ParakeetManager();
   senseVoiceManager = new SenseVoiceManager();
+  paraformerManager = new ParaformerManager();
   updateManager = new UpdateManager();
   windowsKeyManager = new WindowsKeyManager();
 
@@ -184,6 +187,7 @@ function initializeCoreManagers() {
     whisperManager,
     parakeetManager,
     senseVoiceManager,
+    paraformerManager,
     windowManager,
     updateManager,
     windowsKeyManager,
@@ -305,6 +309,10 @@ async function startApp() {
 
   senseVoiceManager.initializeAtStartup().catch((err) => {
     debugLogger.debug("SenseVoice startup init error (non-fatal)", { error: err.message });
+  });
+
+  paraformerManager.initializeAtStartup().catch((err) => {
+    debugLogger.debug("Paraformer startup init error (non-fatal)", { error: err.message });
   });
 
   if (process.env.REASONING_PROVIDER === "local" && process.env.LOCAL_REASONING_MODEL) {
@@ -446,6 +454,22 @@ async function startApp() {
           windowManager.hideDictationPanel();
         }
       }
+    });
+
+    globeKeyManager.on("jis-eisu-down", async () => {
+      const currentHotkey = hotkeyManager.getCurrentHotkey && hotkeyManager.getCurrentHotkey();
+      if (currentHotkey !== "Eisu") return;
+      if (!isLiveWindow(windowManager.mainWindow)) return;
+      windowManager.showDictationPanel();
+      windowManager.mainWindow.webContents.send("toggle-dictation", { profileId: "primary" });
+    });
+
+    globeKeyManager.on("jis-kana-down", async () => {
+      const currentHotkey = hotkeyManager.getCurrentHotkey && hotkeyManager.getCurrentHotkey();
+      if (currentHotkey !== "Kana") return;
+      if (!isLiveWindow(windowManager.mainWindow)) return;
+      windowManager.showDictationPanel();
+      windowManager.mainWindow.webContents.send("toggle-dictation", { profileId: "primary" });
     });
 
     globeKeyManager.start();

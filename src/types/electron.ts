@@ -1,4 +1,4 @@
-export type LocalTranscriptionProvider = "whisper" | "nvidia" | "sensevoice";
+export type LocalTranscriptionProvider = "whisper" | "nvidia" | "sensevoice" | "paraformer";
 export type DictationProfileId = "primary" | "secondary";
 
 export interface DictationHotkeyPayload {
@@ -231,6 +231,70 @@ export interface SenseVoiceTranscriptionResult {
   error?: string;
 }
 
+export interface ParaformerCheckResult {
+  installed: boolean;
+  working: boolean;
+  path?: string;
+  error?: string;
+}
+
+export interface ParaformerModelStatusResult {
+  success: boolean;
+  model?: string;
+  modelPath: string;
+  downloaded: boolean;
+  size_mb?: number;
+}
+
+export interface ParaformerModelResult {
+  success: boolean;
+  model: string;
+  downloaded: boolean;
+  path?: string;
+  size_bytes?: number;
+  size_mb?: number;
+  error?: string;
+  code?: string;
+}
+
+export interface ParaformerModelDeleteResult {
+  success: boolean;
+  model: string;
+  deleted: boolean;
+  freed_bytes?: number;
+  freed_mb?: number;
+  error?: string;
+}
+
+export interface ParaformerModelsListResult {
+  success: boolean;
+  models: Array<{
+    model: string;
+    modelPath?: string;
+    downloaded: boolean;
+    size_mb?: number;
+    path?: string;
+  }>;
+  cache_dir: string;
+}
+
+export interface ParaformerDownloadProgressData {
+  type: "progress" | "installing" | "complete" | "error";
+  model: string;
+  percentage?: number;
+  downloaded_bytes?: number;
+  total_bytes?: number;
+  error?: string;
+  code?: string;
+}
+
+export interface ParaformerTranscriptionResult {
+  success: boolean;
+  text?: string;
+  message?: string;
+  error?: string;
+}
+
 export interface FilePickResult {
   success: boolean;
   path: string | null;
@@ -348,6 +412,7 @@ declare global {
         senseVoiceBinaryPath?: string;
         reasoningProvider: string;
         reasoningModel?: string;
+        localModelsDir?: string;
       }) => Promise<void>;
       exportSettingsFile: (payload: any) => Promise<SettingsFileOperationResult>;
       importSettingsFile: () => Promise<SettingsImportResult>;
@@ -442,10 +507,45 @@ declare global {
         message?: string;
         error?: string;
       }>;
+
+      // Paraformer operations (external CLI + local ONNX model)
+      transcribeLocalParaformer: (
+        audioBlob: ArrayBuffer,
+        options?: {
+          modelPath?: string;
+          binaryPath?: string;
+          language?: string;
+          threads?: number;
+          timeoutMs?: number;
+        }
+      ) => Promise<ParaformerTranscriptionResult>;
+      checkParaformerInstallation: (binaryPath?: string) => Promise<ParaformerCheckResult>;
+      downloadParaformerModel: (modelName: string) => Promise<ParaformerModelResult>;
+      onParaformerDownloadProgress: (
+        callback: (event: any, data: ParaformerDownloadProgressData) => void
+      ) => () => void;
+      checkParaformerModelStatus: (modelPathOrModel: string) => Promise<ParaformerModelStatusResult>;
+      listParaformerModels: () => Promise<ParaformerModelsListResult>;
+      deleteParaformerModel: (modelName: string) => Promise<ParaformerModelDeleteResult>;
+      deleteAllParaformerModels: () => Promise<{
+        success: boolean;
+        deleted_count?: number;
+        freed_bytes?: number;
+        freed_mb?: number;
+        error?: string;
+      }>;
+      cancelParaformerDownload: () => Promise<{
+        success: boolean;
+        message?: string;
+        error?: string;
+      }>;
+      pickParaformerModelFile: (defaultPath?: string) => Promise<FilePickResult>;
+      pickParaformerBinary: (defaultPath?: string) => Promise<FilePickResult>;
       pickWhisperModelFile: (defaultPath?: string) => Promise<FilePickResult>;
       pickParakeetModelDirectory: (defaultPath?: string) => Promise<FilePickResult>;
       pickSenseVoiceModelFile: (defaultPath?: string) => Promise<FilePickResult>;
       pickSenseVoiceBinary: (defaultPath?: string) => Promise<FilePickResult>;
+      pickModelsDirectory: (defaultPath?: string) => Promise<FilePickResult>;
 
       // Local AI model management
       modelGetAll: () => Promise<any[]>;

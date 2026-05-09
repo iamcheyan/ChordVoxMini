@@ -155,6 +155,10 @@ interface TranscriptionSectionProps {
   setSenseVoiceModelPath: (path: string) => void;
   senseVoiceBinaryPath: string;
   setSenseVoiceBinaryPath: (path: string) => void;
+  paraformerModelPath: string;
+  setParaformerModelPath: (path: string) => void;
+  paraformerBinaryPath: string;
+  setParaformerBinaryPath: (path: string) => void;
   openaiApiKey: string;
   setOpenaiApiKey: (key: string) => void;
   groqApiKey: string;
@@ -171,6 +175,10 @@ interface TranscriptionSectionProps {
     variant?: "default" | "destructive" | "success";
     duration?: number;
   }) => void;
+  isSignedIn: boolean;
+  localModelsDir: string;
+  cloudTranscriptionMode: string;
+  setCloudTranscriptionMode: (mode: string) => void;
 }
 
 function TranscriptionSection({
@@ -191,6 +199,10 @@ function TranscriptionSection({
   setSenseVoiceModelPath,
   senseVoiceBinaryPath,
   setSenseVoiceBinaryPath,
+  paraformerModelPath,
+  setParaformerModelPath,
+  paraformerBinaryPath,
+  setParaformerBinaryPath,
   openaiApiKey,
   setOpenaiApiKey,
   groqApiKey,
@@ -202,6 +214,10 @@ function TranscriptionSection({
   cloudTranscriptionBaseUrl,
   setCloudTranscriptionBaseUrl,
   toast,
+  isSignedIn,
+  localModelsDir,
+  cloudTranscriptionMode,
+  setCloudTranscriptionMode,
 }: TranscriptionSectionProps) {
   const { t, i18n } = useTranslation();
   const isCustomMode = useLocalWhisper;
@@ -255,6 +271,10 @@ function TranscriptionSection({
         setSenseVoiceModelPath={setSenseVoiceModelPath}
         senseVoiceBinaryPath={senseVoiceBinaryPath}
         setSenseVoiceBinaryPath={setSenseVoiceBinaryPath}
+        paraformerModelPath={paraformerModelPath}
+        setParaformerModelPath={setParaformerModelPath}
+        paraformerBinaryPath={paraformerBinaryPath}
+        setParaformerBinaryPath={setParaformerBinaryPath}
         cloudTranscriptionBaseUrl={cloudTranscriptionBaseUrl}
         setCloudTranscriptionBaseUrl={setCloudTranscriptionBaseUrl}
         variant="settings"
@@ -264,7 +284,6 @@ function TranscriptionSection({
 }
 
 interface AiModelsSectionProps {
-  isSignedIn: boolean;
   cloudReasoningMode: string;
   setCloudReasoningMode: (mode: string) => void;
   useReasoningModel: boolean;
@@ -287,6 +306,9 @@ interface AiModelsSectionProps {
   setOpenrouterApiKey: (key: string) => void;
   customReasoningApiKey: string;
   setCustomReasoningApiKey: (key: string) => void;
+  localModelsDir: string;
+  setLocalModelsDir: (dir: string) => void;
+  isSignedIn: boolean;
   showAlertDialog: (dialog: { title: string; description: string }) => void;
   toast: (opts: {
     title: string;
@@ -297,7 +319,6 @@ interface AiModelsSectionProps {
 }
 
 function AiModelsSection({
-  isSignedIn,
   cloudReasoningMode,
   setCloudReasoningMode,
   useReasoningModel,
@@ -320,12 +341,15 @@ function AiModelsSection({
   setOpenrouterApiKey,
   customReasoningApiKey,
   setCustomReasoningApiKey,
+  localModelsDir,
+  setLocalModelsDir,
+  isSignedIn,
   showAlertDialog,
   toast,
 }: AiModelsSectionProps) {
   const { t, i18n } = useTranslation();
-  const isCustomMode = cloudReasoningMode === "byok";
-  const isCloudMode = isSignedIn && cloudReasoningMode === "openwhispr";
+  const isCustomMode = true;
+  const isCloudMode = false;
 
   return (
     <div className="space-y-4">
@@ -348,121 +372,7 @@ function AiModelsSection({
 
       {useReasoningModel && (
         <>
-          {/* Mode selector */}
-          {isSignedIn && (
-            <SettingsPanel>
-              <SettingsPanelRow>
-                <button
-                  onClick={() => {
-                    if (!isCloudMode) {
-                      setCloudReasoningMode("openwhispr");
-                      toast({
-                        title: t("settingsPage.aiModels.toasts.switchedCloud.title"),
-                        description: t("settingsPage.aiModels.toasts.switchedCloud.description"),
-                        variant: "success",
-                        duration: 3000,
-                      });
-                    }
-                  }}
-                  className="w-full flex items-center gap-3 text-left cursor-pointer group"
-                >
-                  <div
-                    className={`w-8 h-8 rounded-md flex items-center justify-center shrink-0 transition-colors ${isCloudMode
-                        ? "bg-primary/10 dark:bg-primary/15"
-                        : "bg-muted/60 dark:bg-surface-raised group-hover:bg-muted dark:group-hover:bg-surface-3"
-                      }`}
-                  >
-                    <Cloud
-                      className={`w-4 h-4 transition-colors ${isCloudMode ? "text-primary" : "text-muted-foreground"
-                        }`}
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[12px] font-medium text-foreground">
-                        {t("settingsPage.aiModels.openwhisprCloud")}
-                      </span>
-                      {isCloudMode && (
-                        <span className="text-[10px] font-medium text-primary bg-primary/10 dark:bg-primary/15 px-1.5 py-px rounded-sm">
-                          {t("common.active")}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-[11px] text-muted-foreground/80 mt-0.5">
-                      {t("settingsPage.aiModels.openwhisprCloudDescription")}
-                    </p>
-                  </div>
-                  <div
-                    className={`w-4 h-4 rounded-full border-2 shrink-0 transition-colors ${isCloudMode
-                        ? "border-primary bg-primary"
-                        : "border-border-hover dark:border-border-subtle"
-                      }`}
-                  >
-                    {isCloudMode && (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <div className="w-1.5 h-1.5 rounded-full bg-primary-foreground" />
-                      </div>
-                    )}
-                  </div>
-                </button>
-              </SettingsPanelRow>
-              <SettingsPanelRow>
-                <button
-                  onClick={() => {
-                    if (!isCustomMode) {
-                      setCloudReasoningMode("byok");
-                      toast({
-                        title: t("settingsPage.aiModels.toasts.switchedCustom.title"),
-                        description: t("settingsPage.aiModels.toasts.switchedCustom.description"),
-                        variant: "success",
-                        duration: 3000,
-                      });
-                    }
-                  }}
-                  className="w-full flex items-center gap-3 text-left cursor-pointer group"
-                >
-                  <div
-                    className={`w-8 h-8 rounded-md flex items-center justify-center shrink-0 transition-colors ${isCustomMode
-                        ? "bg-accent/10 dark:bg-accent/15"
-                        : "bg-muted/60 dark:bg-surface-raised group-hover:bg-muted dark:group-hover:bg-surface-3"
-                      }`}
-                  >
-                    <Key
-                      className={`w-4 h-4 transition-colors ${isCustomMode ? "text-accent" : "text-muted-foreground"
-                        }`}
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[12px] font-medium text-foreground">
-                        {t("settingsPage.aiModels.customSetup")}
-                      </span>
-                      {isCustomMode && (
-                        <span className="text-[10px] font-medium text-accent bg-accent/10 dark:bg-accent/15 px-1.5 py-px rounded-sm">
-                          {t("common.active")}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-[11px] text-muted-foreground/80 mt-0.5">
-                      {t("settingsPage.aiModels.customSetupDescription")}
-                    </p>
-                  </div>
-                  <div
-                    className={`w-4 h-4 rounded-full border-2 shrink-0 transition-colors ${isCustomMode
-                        ? "border-accent bg-accent"
-                        : "border-border-hover dark:border-border-subtle"
-                      }`}
-                  >
-                    {isCustomMode && (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <div className="w-1.5 h-1.5 rounded-full bg-accent-foreground" />
-                      </div>
-                    )}
-                  </div>
-                </button>
-              </SettingsPanelRow>
-            </SettingsPanel>
-          )}
+
 
           {/* Custom Setup model picker — shown when Custom Setup is active or not signed in */}
           {(isCustomMode || !isSignedIn) && (
@@ -516,6 +426,8 @@ export default function SettingsPage({
     parakeetModel,
     senseVoiceModelPath,
     senseVoiceBinaryPath,
+    paraformerModelPath,
+    paraformerBinaryPath,
     uiLanguage,
     preferredLanguage,
     cloudTranscriptionProvider,
@@ -548,6 +460,8 @@ export default function SettingsPage({
     setParakeetModel,
     setSenseVoiceModelPath,
     setSenseVoiceBinaryPath,
+    setParaformerModelPath,
+    setParaformerBinaryPath,
     setCloudTranscriptionProvider,
     setCloudTranscriptionModel,
     setCloudTranscriptionBaseUrl,
@@ -585,7 +499,11 @@ export default function SettingsPage({
     setTelemetryEnabled,
     transcriptionHistoryEnabled,
     setTranscriptionHistoryEnabled,
+    localModelsDir,
+    setLocalModelsDir,
   } = useSettings();
+
+  const isSignedIn = false;
 
   const { t, i18n } = useTranslation();
   const { toast } = useToast();
@@ -951,7 +869,7 @@ export default function SettingsPage({
               description: t("settingsPage.developer.removeModels.failedDescription"),
             });
           } else {
-            window.dispatchEvent(new Event("openwhispr-models-cleared"));
+            window.dispatchEvent(new Event("local-models-cleared"));
             showAlertDialog({
               title: t("settingsPage.developer.removeModels.successTitle"),
               description: t("settingsPage.developer.removeModels.successDescription"),
@@ -1612,6 +1530,38 @@ export default function SettingsPage({
                 )}
               </SettingsPanel>
             </div>
+            
+            {/* Local Model Storage */}
+            <div>
+              <SectionHeader
+                title={t("settingsPage.aiModels.localModelStorage")}
+                description={t("settingsPage.aiModels.localModelStorageDescription")}
+              />
+              <SettingsPanel>
+                <SettingsPanelRow>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 bg-muted/30 border border-border/50 rounded-md px-2.5 py-1.5 overflow-hidden">
+                      <p className="text-[12px] font-mono text-muted-foreground truncate">
+                        {localModelsDir || t("common.unknown")}
+                      </p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={async () => {
+                        const result = await window.electronAPI?.pickModelsDirectory?.(localModelsDir);
+                        if (result?.success && result.path) {
+                          setLocalModelsDir(result.path);
+                        }
+                      }}
+                    >
+                      <FolderOpen className="mr-1.5 h-3.5 w-3.5" />
+                      {t("settingsPage.aiModels.selectDirectory")}
+                    </Button>
+                  </div>
+                </SettingsPanelRow>
+              </SettingsPanel>
+            </div>
 
             {/* Startup */}
             <div>
@@ -1670,6 +1620,7 @@ export default function SettingsPage({
         return (
           <TranscriptionSection
             isSignedIn={isSignedIn ?? false}
+            localModelsDir={localModelsDir}
             cloudTranscriptionMode={cloudTranscriptionMode}
             setCloudTranscriptionMode={setCloudTranscriptionMode}
             useLocalWhisper={useLocalWhisper}
@@ -1858,14 +1809,10 @@ export default function SettingsPage({
       case "aiModels":
         return (
           <AiModelsSection
-            isSignedIn={isSignedIn ?? false}
             cloudReasoningMode={cloudReasoningMode}
             setCloudReasoningMode={setCloudReasoningMode}
             useReasoningModel={useReasoningModel}
-            setUseReasoningModel={(value) => {
-              setUseReasoningModel(value);
-              updateReasoningSettings({ useReasoningModel: value });
-            }}
+            setUseReasoningModel={setUseReasoningModel}
             reasoningModel={reasoningModel}
             setReasoningModel={setReasoningModel}
             reasoningProvider={reasoningProvider}
@@ -1874,16 +1821,19 @@ export default function SettingsPage({
             setCloudReasoningBaseUrl={setCloudReasoningBaseUrl}
             openaiApiKey={openaiApiKey}
             setOpenaiApiKey={setOpenaiApiKey}
-            openrouterApiKey={openrouterApiKey}
-            setOpenrouterApiKey={setOpenrouterApiKey}
             anthropicApiKey={anthropicApiKey}
             setAnthropicApiKey={setAnthropicApiKey}
             geminiApiKey={geminiApiKey}
             setGeminiApiKey={setGeminiApiKey}
             groqApiKey={groqApiKey}
             setGroqApiKey={setGroqApiKey}
+            openrouterApiKey={openrouterApiKey}
+            setOpenrouterApiKey={setOpenrouterApiKey}
             customReasoningApiKey={customReasoningApiKey}
             setCustomReasoningApiKey={setCustomReasoningApiKey}
+            localModelsDir={localModelsDir}
+            setLocalModelsDir={setLocalModelsDir}
+            isSignedIn={isSignedIn}
             showAlertDialog={showAlertDialog}
             toast={toast}
           />

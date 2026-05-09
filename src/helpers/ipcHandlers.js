@@ -21,6 +21,7 @@ class IPCHandlers {
     this.whisperManager = managers.whisperManager;
     this.parakeetManager = managers.parakeetManager;
     this.senseVoiceManager = managers.senseVoiceManager;
+    this.paraformerManager = managers.paraformerManager;
     this.windowManager = managers.windowManager;
     this.updateManager = managers.updateManager;
     this.windowsKeyManager = managers.windowsKeyManager;
@@ -627,6 +628,122 @@ class IPCHandlers {
       return this.senseVoiceManager.cancelDownload();
     });
 
+    // Paraformer handlers (external local model via paraformer-main)
+    ipcMain.handle("transcribe-local-paraformer", async (event, audioBlob, options = {}) => {
+      debugLogger.log("transcribe-local-paraformer called", {
+        audioBlobType: typeof audioBlob,
+        audioBlobLength: audioBlob?.length || audioBlob?.byteLength || 0,
+        options: { ...options, binaryPath: options.binaryPath ? "[set]" : "[not set]" },
+      });
+
+      try {
+        const result = await this.paraformerManager.transcribeLocalParaformer(audioBlob, options);
+        debugLogger.log("Paraformer result", {
+          success: result.success,
+          textLength: result.text?.length || 0,
+          hasText: !!result.text,
+        });
+        return result;
+      } catch (error) {
+        debugLogger.error("Local Paraformer transcription error", error);
+
+        if (error.message.includes("model path is empty")) {
+          return {
+            success: false,
+            error: "paraformer_model_not_set",
+            message: "Paraformer model path is empty. Please select a model directory.",
+          };
+        }
+        if (error.message.includes("model") && error.message.includes("not found")) {
+          return {
+            success: false,
+            error: "paraformer_model_not_found",
+            message: error.message,
+          };
+        }
+        if (error.message.includes("binary not found")) {
+          return {
+            success: false,
+            error: "paraformer_binary_not_found",
+            message: "Paraformer binary not found. Please select paraformer-main path.",
+          };
+        }
+        if (error.message.includes("timed out")) {
+          return {
+            success: false,
+            error: "paraformer_timeout",
+            message: error.message,
+          };
+        }
+
+        throw error;
+      }
+    });
+
+    ipcMain.handle("check-paraformer-installation", async (_event, binaryPath = "") => {
+      return this.paraformerManager.checkInstallation(binaryPath);
+    });
+
+    ipcMain.handle("download-paraformer-model", async (event, modelName) => {
+      try {
+        const result = await this.paraformerManager.downloadParaformerModel(
+          modelName,
+          (progressData) => {
+            event.sender.send("paraformer-download-progress", progressData);
+          }
+        );
+        return result;
+      } catch (error) {
+        event.sender.send("paraformer-download-progress", {
+          type: "error",
+          model: modelName,
+          error: error.message,
+        });
+        return { success: false, error: error.message };
+      }
+    });
+
+    ipcMain.handle("check-paraformer-model-status", async (_event, modelPath = "") => {
+      return this.paraformerManager.checkModelStatus(modelPath);
+    });
+
+    ipcMain.handle("list-paraformer-models", async () => {
+      return this.paraformerManager.listParaformerModels();
+    });
+
+    ipcMain.handle("delete-paraformer-model", async (_event, modelName) => {
+      return this.paraformerManager.deleteParaformerModel(modelName);
+    });
+
+    ipcMain.handle("delete-all-paraformer-models", async () => {
+      return this.paraformerManager.deleteAllParaformerModels();
+    });
+
+    ipcMain.handle("cancel-paraformer-download", async () => {
+      return this.paraformerManager.cancelDownload();
+    });
+
+    ipcMain.handle("pick-models-directory", async (event, defaultPath = "") => {
+      try {
+        const targetWindow = BrowserWindow.fromWebContents(event.sender);
+        const options = {
+          title: "Select Local Model Storage Directory",
+          defaultPath: defaultPath || app.getPath("home"),
+          properties: ["openDirectory", "createDirectory"],
+        };
+        const result = targetWindow
+          ? await dialog.showOpenDialog(targetWindow, options)
+          : await dialog.showOpenDialog(options);
+
+        if (result.canceled || !result.filePaths?.length) {
+          return { success: false, cancelled: true };
+        }
+        return { success: true, path: result.filePaths[0], cancelled: false };
+      } catch (error) {
+        return { success: false, error: error.message };
+      }
+    });
+
     ipcMain.handle("pick-whisper-model-file", async (event, defaultPath = "") => {
       try {
         const targetWindow = BrowserWindow.fromWebContents(event.sender);
@@ -711,6 +828,57 @@ class IPCHandlers {
           filters: [
             {
               name: "SenseVoice binary",
+              extensions: process.platform === "win32" ? ["exe"] : ["*"],
+            },
+            { name: "All files", extensions: ["*"] },
+          ],
+        };
+        const result = targetWindow
+          ? await dialog.showOpenDialog(targetWindow, options)
+          : await dialog.showOpenDialog(options);
+
+        if (result.canceled || !result.filePaths?.length) {
+          return { success: true, path: null, cancelled: true };
+        }
+
+        return { success: true, path: result.filePaths[0], cancelled: false };
+      } catch (error) {
+        return { success: false, error: error.message, path: null, cancelled: false };
+      }
+    });
+
+    ipcMain.handle("pick-paraformer-model-file", async (event, defaultPath = "") => {
+      try {
+        const targetWindow = BrowserWindow.fromWebContents(event.sender);
+        const options = {
+          title: "Select Paraformer model directory",
+          defaultPath: defaultPath || undefined,
+          properties: ["openDirectory"],
+        };
+        const result = targetWindow
+          ? await dialog.showOpenDialog(targetWindow, options)
+          : await dialog.showOpenDialog(options);
+
+        if (result.canceled || !result.filePaths?.length) {
+          return { success: true, path: null, cancelled: true };
+        }
+
+        return { success: true, path: result.filePaths[0], cancelled: false };
+      } catch (error) {
+        return { success: false, error: error.message, path: null, cancelled: false };
+      }
+    });
+
+    ipcMain.handle("pick-paraformer-binary", async (event, defaultPath = "") => {
+      try {
+        const targetWindow = BrowserWindow.fromWebContents(event.sender);
+        const options = {
+          title: "Select paraformer-main binary",
+          defaultPath: defaultPath || undefined,
+          properties: ["openFile"],
+          filters: [
+            {
+              name: "Paraformer binary",
               extensions: process.platform === "win32" ? ["exe"] : ["*"],
             },
             { name: "All files", extensions: ["*"] },
@@ -1194,6 +1362,17 @@ class IPCHandlers {
       return this.environmentManager.saveDictationKey(key);
     });
 
+    ipcMain.handle("get-local-models-dir", async () => {
+      return process.env.LOCAL_MODELS_DIR || "";
+    });
+
+    ipcMain.handle("save-local-models-dir", async (_event, path) => {
+      process.env.LOCAL_MODELS_DIR = path;
+      const modelManager = require("./modelManagerBridge").default;
+      modelManager.refreshConfig();
+      return this.environmentManager.saveAllKeysToEnvFile();
+    });
+
     ipcMain.handle("get-activation-mode", async () => {
       return this.environmentManager.getActivationMode();
     });
@@ -1235,12 +1414,18 @@ class IPCHandlers {
       const setVars = {};
       const clearVars = [];
 
+      if (prefs.localModelsDir) {
+        setVars.LOCAL_MODELS_DIR = prefs.localModelsDir;
+      } else {
+        clearVars.push("LOCAL_MODELS_DIR");
+      }
+
       if (prefs.useLocalWhisper && prefs.model) {
         // Local mode with model selected - set provider and model for pre-warming
         setVars.LOCAL_TRANSCRIPTION_PROVIDER = prefs.localTranscriptionProvider;
         if (prefs.localTranscriptionProvider === "nvidia") {
           setVars.PARAKEET_MODEL = prefs.model;
-          clearVars.push("LOCAL_WHISPER_MODEL", "SENSEVOICE_MODEL_PATH", "SENSEVOICE_BINARY_PATH");
+          clearVars.push("LOCAL_WHISPER_MODEL", "SENSEVOICE_MODEL_PATH", "SENSEVOICE_BINARY_PATH", "PARAFORMER_MODEL_PATH", "PARAFORMER_BINARY_PATH");
         } else if (prefs.localTranscriptionProvider === "sensevoice") {
           setVars.SENSEVOICE_MODEL_PATH = prefs.model;
           if (prefs.senseVoiceBinaryPath) {
@@ -1248,10 +1433,18 @@ class IPCHandlers {
           } else {
             clearVars.push("SENSEVOICE_BINARY_PATH");
           }
-          clearVars.push("PARAKEET_MODEL", "LOCAL_WHISPER_MODEL");
+          clearVars.push("PARAKEET_MODEL", "LOCAL_WHISPER_MODEL", "PARAFORMER_MODEL_PATH", "PARAFORMER_BINARY_PATH");
+        } else if (prefs.localTranscriptionProvider === "paraformer") {
+          setVars.PARAFORMER_MODEL_PATH = prefs.model;
+          if (prefs.paraformerBinaryPath) {
+            setVars.PARAFORMER_BINARY_PATH = prefs.paraformerBinaryPath;
+          } else {
+            clearVars.push("PARAFORMER_BINARY_PATH");
+          }
+          clearVars.push("PARAKEET_MODEL", "LOCAL_WHISPER_MODEL", "SENSEVOICE_MODEL_PATH", "SENSEVOICE_BINARY_PATH");
         } else {
           setVars.LOCAL_WHISPER_MODEL = prefs.model;
-          clearVars.push("PARAKEET_MODEL", "SENSEVOICE_MODEL_PATH", "SENSEVOICE_BINARY_PATH");
+          clearVars.push("PARAKEET_MODEL", "SENSEVOICE_MODEL_PATH", "SENSEVOICE_BINARY_PATH", "PARAFORMER_MODEL_PATH", "PARAFORMER_BINARY_PATH");
         }
       } else if (prefs.useLocalWhisper) {
         // Local mode enabled but no model selected - clear pre-warming vars
@@ -1260,7 +1453,9 @@ class IPCHandlers {
           "PARAKEET_MODEL",
           "LOCAL_WHISPER_MODEL",
           "SENSEVOICE_MODEL_PATH",
-          "SENSEVOICE_BINARY_PATH"
+          "SENSEVOICE_BINARY_PATH",
+          "PARAFORMER_MODEL_PATH",
+          "PARAFORMER_BINARY_PATH"
         );
       } else {
         // Cloud mode - clear all local transcription vars
@@ -1269,7 +1464,9 @@ class IPCHandlers {
           "PARAKEET_MODEL",
           "LOCAL_WHISPER_MODEL",
           "SENSEVOICE_MODEL_PATH",
-          "SENSEVOICE_BINARY_PATH"
+          "SENSEVOICE_BINARY_PATH",
+          "PARAFORMER_MODEL_PATH",
+          "PARAFORMER_BINARY_PATH"
         );
       }
 
@@ -1552,25 +1749,25 @@ class IPCHandlers {
         // Parse lines
         const lines = envContent.split("\n");
         const logLevelIndex = lines.findIndex((line) =>
-          line.trim().startsWith("OPENWHISPR_LOG_LEVEL=")
+          line.trim().startsWith("CHORDVOX_LOG_LEVEL=")
         );
 
         if (enabled) {
           // Set to debug
           if (logLevelIndex !== -1) {
-            lines[logLevelIndex] = "OPENWHISPR_LOG_LEVEL=debug";
+            lines[logLevelIndex] = "CHORDVOX_LOG_LEVEL=debug";
           } else {
             // Add new line
             if (lines.length > 0 && lines[lines.length - 1] !== "") {
               lines.push("");
             }
             lines.push("# Debug logging setting");
-            lines.push("OPENWHISPR_LOG_LEVEL=debug");
+            lines.push("CHORDVOX_LOG_LEVEL=debug");
           }
         } else {
           // Remove or set to info
           if (logLevelIndex !== -1) {
-            lines[logLevelIndex] = "OPENWHISPR_LOG_LEVEL=info";
+            lines[logLevelIndex] = "CHORDVOX_LOG_LEVEL=info";
           }
         }
 
@@ -1578,7 +1775,7 @@ class IPCHandlers {
         fs.writeFileSync(envPath, lines.join("\n"), "utf8");
 
         // Update environment variable
-        process.env.OPENWHISPR_LOG_LEVEL = enabled ? "debug" : "info";
+        process.env.CHORDVOX_LOG_LEVEL = enabled ? "debug" : "info";
 
         // Refresh logger state
         debugLogger.refreshLogLevel();

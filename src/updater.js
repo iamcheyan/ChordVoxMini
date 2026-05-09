@@ -167,8 +167,8 @@ open "$APP_BUNDLE_PATH" >/dev/null 2>&1 || true
   }
 
   getUpdateRepo() {
-    const owner = (process.env.OPENWHISPR_UPDATE_OWNER || "GravityPoet").trim();
-    const repo = (process.env.OPENWHISPR_UPDATE_REPO || "ChordVox").trim();
+    const owner = (process.env.CHORDVOX_UPDATE_OWNER || "GravityPoet").trim();
+    const repo = (process.env.CHORDVOX_UPDATE_REPO || "ChordVox").trim();
     return { owner, repo };
   }
 
@@ -302,8 +302,8 @@ open "$APP_BUNDLE_PATH" >/dev/null 2>&1 || true
 
     // Prefer build-generated app-update.yml (from electron-builder publish settings).
     // Optional override allows custom feeds without rebuilding.
-    const updateOwner = (process.env.OPENWHISPR_UPDATE_OWNER || "").trim();
-    const updateRepo = (process.env.OPENWHISPR_UPDATE_REPO || "").trim();
+    const updateOwner = (process.env.CHORDVOX_UPDATE_OWNER || "").trim();
+    const updateRepo = (process.env.CHORDVOX_UPDATE_REPO || "").trim();
     if (updateOwner && updateRepo) {
       autoUpdater.setFeedURL({
         provider: "github",
@@ -316,7 +316,7 @@ open "$APP_BUNDLE_PATH" >/dev/null 2>&1 || true
     // Default to manual update flow: only download after explicit user confirmation.
     // Can be forced on with OPENWHISPR_AUTO_DOWNLOAD_UPDATES=true.
     autoUpdater.autoDownload =
-      String(process.env.OPENWHISPR_AUTO_DOWNLOAD_UPDATES || "false").toLowerCase() === "true";
+      String(process.env.CHORDVOX_AUTO_DOWNLOAD_UPDATES || "false").toLowerCase() === "true";
 
     // Keep install fully user-driven. Do not auto-install on app quit.
     autoUpdater.autoInstallOnAppQuit = false;
