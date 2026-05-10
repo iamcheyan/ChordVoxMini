@@ -27,7 +27,6 @@ const PERSISTED_KEYS = [
   "ACTIVATION_MODE",
   "FLOATING_ICON_AUTO_HIDE",
   "AUTO_START_ENABLED",
-  "AUTO_CHECK_UPDATE",
   "UI_LANGUAGE",
   "LOCAL_MODELS_DIR",
   "PARAFORMER_MODEL_PATH",
@@ -198,18 +197,6 @@ class EnvironmentManager {
 
   saveAutoStartEnabled(enabled) {
     const result = this._saveKey("AUTO_START_ENABLED", String(enabled));
-    this.saveAllKeysToEnvFile().catch(() => { });
-    return result;
-  }
-
-  getAutoCheckUpdate() {
-    const val = this._getKey("AUTO_CHECK_UPDATE");
-    // Default to true if not explicitly set to "false"
-    return val !== "false";
-  }
-
-  saveAutoCheckUpdate(enabled) {
-    const result = this._saveKey("AUTO_CHECK_UPDATE", String(enabled));
     this.saveAllKeysToEnvFile().catch(() => { });
     return result;
   }

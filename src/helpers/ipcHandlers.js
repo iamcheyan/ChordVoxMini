@@ -23,7 +23,6 @@ class IPCHandlers {
     this.senseVoiceManager = managers.senseVoiceManager;
     this.paraformerManager = managers.paraformerManager;
     this.windowManager = managers.windowManager;
-    this.updateManager = managers.updateManager;
     this.windowsKeyManager = managers.windowsKeyManager;
     this.getTrayManager = managers.getTrayManager;
     this.sessionId = crypto.randomUUID();
@@ -1155,27 +1154,6 @@ class IPCHandlers {
       }
     });
 
-    // Auto-check-update handlers
-    ipcMain.handle("get-auto-check-update", async () => {
-      try {
-        return this.environmentManager.getAutoCheckUpdate();
-      } catch (error) {
-        debugLogger.error("Error getting auto-check-update status:", error);
-        return true; // default to enabled
-      }
-    });
-
-    ipcMain.handle("set-auto-check-update", async (event, enabled) => {
-      try {
-        this.environmentManager.saveAutoCheckUpdate(enabled);
-        debugLogger.debug("Auto-check-update setting updated", { enabled });
-        return { success: true };
-      } catch (error) {
-        debugLogger.error("Error setting auto-check-update:", error);
-        return { success: false, error: error.message };
-      }
-    });
-
     // Model management handlers
     ipcMain.handle("model-get-all", async () => {
       try {
@@ -1858,31 +1836,6 @@ class IPCHandlers {
         debugLogger.error("Failed to clear call traces:", error);
         return { success: false, error: error.message };
       }
-    });
-
-    // Update handlers
-    ipcMain.handle("check-for-updates", async () => {
-      return this.updateManager.checkForUpdates();
-    });
-
-    ipcMain.handle("download-update", async () => {
-      return this.updateManager.downloadUpdate();
-    });
-
-    ipcMain.handle("install-update", async () => {
-      return this.updateManager.installUpdate();
-    });
-
-    ipcMain.handle("get-app-version", async () => {
-      return this.updateManager.getAppVersion();
-    });
-
-    ipcMain.handle("get-update-status", async () => {
-      return this.updateManager.getUpdateStatus();
-    });
-
-    ipcMain.handle("get-update-info", async () => {
-      return this.updateManager.getUpdateInfo();
     });
 
     // --- Assembly AI Streaming handlers ---

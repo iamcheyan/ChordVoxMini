@@ -1,10 +1,8 @@
-import React, { useState, useCallback, useEffect, useRef, useMemo } from "react";
+import React, { useState, useCallback, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { Badge } from "./ui/badge";
 import {
-  RefreshCw,
   Download,
   Upload,
   Command,
@@ -17,7 +15,6 @@ import {
   Key,
   Loader2,
 } from "lucide-react";
-import MarkdownRenderer from "./ui/MarkdownRenderer";
 import MicPermissionWarning from "./ui/MicPermissionWarning";
 import MicrophoneSettings from "./ui/MicrophoneSettings";
 import PermissionCard from "./ui/PermissionCard";
@@ -30,7 +27,6 @@ import { useDialogs } from "../hooks/useDialogs";
 import { useWhisper } from "../hooks/useWhisper";
 import { usePermissions } from "../hooks/usePermissions";
 import { useClipboard } from "../hooks/useClipboard";
-import { useUpdater } from "../hooks/useUpdater";
 
 import PromptStudio from "./ui/PromptStudio";
 import ReasoningModelSelector from "./ReasoningModelSelector";
@@ -510,40 +506,16 @@ export default function SettingsPage({
   const { t, i18n } = useTranslation();
   const { toast } = useToast();
 
-  const [currentVersion, setCurrentVersion] = useState<string>("");
   const [isRemovingModels, setIsRemovingModels] = useState(false);
   const cachePathHint =
     typeof navigator !== "undefined" && /Windows/i.test(navigator.userAgent)
       ? "%USERPROFILE%\\.cache\\chordvox"
       : "~/.cache/chordvox";
 
-  const {
-    status: updateStatus,
-    info: updateInfo,
-    downloadProgress: updateDownloadProgress,
-    isChecking: checkingForUpdates,
-    isDownloading: downloadingUpdate,
-    isInstalling: installInitiated,
-    checkForUpdates,
-    downloadUpdate,
-    installUpdate: installUpdateAction,
-    getAppVersion,
-  } = useUpdater();
-
-  const isUpdateAvailable =
-    !updateStatus.isDevelopment && (updateStatus.updateAvailable || updateStatus.updateDownloaded);
-  const manualUpdateUrl =
-    updateInfo && updateInfo.manualOnly && updateInfo.manualDownloadUrl
-      ? updateInfo.manualDownloadUrl
-      : "";
-  const isManualUpdate = Boolean(manualUpdateUrl);
-
   const whisperHook = useWhisper();
   const permissionsHook = usePermissions(showAlertDialog);
   useClipboard(showAlertDialog);
   const { theme, setTheme } = useTheme();
-
-  const installTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { registerHotkey, isRegistering: isHotkeyRegistering } = useHotkeyRegistration({
     onSuccess: (registeredHotkey) => {
@@ -735,60 +707,6 @@ export default function SettingsPage({
     }
   };
 
-  const [autoCheckUpdateEnabled, setAutoCheckUpdateEnabled] = useState(true);
-  const [autoCheckUpdateLoading, setAutoCheckUpdateLoading] = useState(true);
-
-  useEffect(() => {
-    const loadAutoCheckUpdate = async () => {
-      if (window.electronAPI?.getAutoCheckUpdate) {
-        try {
-          const enabled = await window.electronAPI.getAutoCheckUpdate();
-          setAutoCheckUpdateEnabled(enabled);
-        } catch (error) {
-          logger.error("Failed to get auto-check-update status", error, "settings");
-        }
-      }
-      setAutoCheckUpdateLoading(false);
-    };
-    loadAutoCheckUpdate();
-  }, []);
-
-  const handleAutoCheckUpdateChange = async (enabled: boolean) => {
-    if (window.electronAPI?.setAutoCheckUpdate) {
-      try {
-        setAutoCheckUpdateLoading(true);
-        const result = await window.electronAPI.setAutoCheckUpdate(enabled);
-        if (result.success) {
-          setAutoCheckUpdateEnabled(enabled);
-        }
-      } catch (error) {
-        logger.error("Failed to set auto-check-update", error, "settings");
-      } finally {
-        setAutoCheckUpdateLoading(false);
-      }
-    }
-  };
-
-  useEffect(() => {
-    let mounted = true;
-
-    const timer = setTimeout(async () => {
-      if (!mounted) return;
-
-      const version = await getAppVersion();
-      if (version && mounted) setCurrentVersion(version);
-
-      if (mounted) {
-        whisperHook.checkWhisperInstallation();
-      }
-    }, 100);
-
-    return () => {
-      mounted = false;
-      clearTimeout(timer);
-    };
-  }, [whisperHook, getAppVersion]);
-
   useEffect(() => {
     const checkHotkeyMode = async () => {
       try {
@@ -803,30 +721,6 @@ export default function SettingsPage({
     };
     checkHotkeyMode();
   }, [setActivationMode]);
-
-  useEffect(() => {
-    if (installInitiated) {
-      if (installTimeoutRef.current) {
-        clearTimeout(installTimeoutRef.current);
-      }
-      installTimeoutRef.current = setTimeout(() => {
-        showAlertDialog({
-          title: t("settingsPage.general.updates.dialogs.almostThere.title"),
-          description: t("settingsPage.general.updates.dialogs.almostThere.description"),
-        });
-      }, 10000);
-    } else if (installTimeoutRef.current) {
-      clearTimeout(installTimeoutRef.current);
-      installTimeoutRef.current = null;
-    }
-
-    return () => {
-      if (installTimeoutRef.current) {
-        clearTimeout(installTimeoutRef.current);
-        installTimeoutRef.current = null;
-      }
-    };
-  }, [installInitiated, showAlertDialog, t]);
 
   const resetAccessibilityPermissions = () => {
     const message = t("settingsPage.permissions.resetAccessibility.description");
@@ -910,7 +804,7 @@ export default function SettingsPage({
       schemaVersion: 1,
       app: "ChordVox",
       exportedAt: new Date().toISOString(),
-      appVersion: currentVersion || (await getAppVersion()) || null,
+      appVersion: null,
       localStorage: localStorageData,
       dictionary: Array.isArray(dictionary) ? dictionary : [],
       runtime: {
@@ -919,7 +813,7 @@ export default function SettingsPage({
         licenseApiBaseUrl,
       },
     };
-  }, [currentVersion, getAppVersion]);
+  }, []);
 
   const handleExportSettings = useCallback(async () => {
     if (!window.electronAPI?.exportSettingsFile) return;
@@ -1096,252 +990,6 @@ export default function SettingsPage({
       case "general":
         return (
           <div className="space-y-6">
-            {/* Updates */}
-            <div>
-              <SectionHeader title={t("settingsPage.general.updates.title")} />
-              <SettingsPanel>
-                <SettingsPanelRow>
-                  <SettingsRow
-                    label={t("settingsPage.general.updates.currentVersion")}
-                    description={
-                      updateStatus.isDevelopment
-                        ? t("settingsPage.general.updates.devMode")
-                        : isUpdateAvailable
-                          ? t("settingsPage.general.updates.newVersionAvailable")
-                          : t("settingsPage.general.updates.latestVersion")
-                    }
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <span className="text-[13px] tabular-nums text-muted-foreground font-mono">
-                        {currentVersion || t("settingsPage.general.updates.versionPlaceholder")}
-                      </span>
-                      {updateStatus.isDevelopment ? (
-                        <Badge variant="warning">
-                          {t("settingsPage.general.updates.badges.dev")}
-                        </Badge>
-                      ) : isUpdateAvailable ? (
-                        <Badge variant="success">
-                          {t("settingsPage.general.updates.badges.update")}
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline">
-                          {t("settingsPage.general.updates.badges.latest")}
-                        </Badge>
-                      )}
-                    </div>
-                  </SettingsRow>
-                </SettingsPanelRow>
-
-                <SettingsPanelRow>
-                  <div className="space-y-2.5">
-                    <Button
-                      onClick={async () => {
-                        try {
-                          const result = await checkForUpdates();
-                          if (result?.updateAvailable) {
-                            if (result.manualOnly && result.manualDownloadUrl) {
-                              showConfirmDialog({
-                                title: t(
-                                  "settingsPage.general.updates.dialogs.manualUpdateAvailable.title"
-                                ),
-                                description: t(
-                                  "settingsPage.general.updates.dialogs.manualUpdateAvailable.description",
-                                  {
-                                    version:
-                                      result.version ||
-                                      t("settingsPage.general.updates.newVersion"),
-                                  }
-                                ),
-                                confirmText: t(
-                                  "settingsPage.general.updates.dialogs.manualUpdateAvailable.confirmText"
-                                ),
-                                onConfirm: async () => {
-                                  await window.electronAPI.openExternal(result.manualDownloadUrl);
-                                },
-                              });
-                            } else {
-                              showConfirmDialog({
-                                title: t(
-                                  "settingsPage.general.updates.dialogs.updateAvailable.title"
-                                ),
-                                description: t(
-                                  "settingsPage.general.updates.dialogs.updateAvailable.description",
-                                  {
-                                    version:
-                                      result.version ||
-                                      t("settingsPage.general.updates.newVersion"),
-                                  }
-                                ),
-                                confirmText: t("settingsPage.general.updates.downloadUpdate", {
-                                  version: result.version || "",
-                                }),
-                                onConfirm: async () => {
-                                  try {
-                                    await downloadUpdate();
-                                  } catch (error: any) {
-                                    showAlertDialog({
-                                      title: t(
-                                        "settingsPage.general.updates.dialogs.downloadFailed.title"
-                                      ),
-                                      description: t(
-                                        "settingsPage.general.updates.dialogs.downloadFailed.description"
-                                      ),
-                                    });
-                                  }
-                                },
-                              });
-                            }
-                          } else if (result?.error) {
-                            showAlertDialog({
-                              title: t("settingsPage.general.updates.dialogs.checkFailed.title"),
-                              description: t(
-                                "settingsPage.general.updates.dialogs.checkFailed.description",
-                                {
-                                  message: result.error,
-                                }
-                              ),
-                            });
-                          } else {
-                            showAlertDialog({
-                              title: t("settingsPage.general.updates.dialogs.noUpdates.title"),
-                              description: t(
-                                "settingsPage.general.updates.dialogs.noUpdates.description"
-                              ),
-                            });
-                          }
-                        } catch (error: any) {
-                          showAlertDialog({
-                            title: t("settingsPage.general.updates.dialogs.noUpdates.title"),
-                            description: t("settingsPage.general.updates.dialogs.noUpdates.description"),
-                          });
-                        }
-                      }}
-                      disabled={checkingForUpdates || updateStatus.isDevelopment}
-                      variant="outline"
-                      className="w-full"
-                      size="sm"
-                    >
-                      <RefreshCw
-                        size={13}
-                        className={`mr-1.5 ${checkingForUpdates ? "animate-spin" : ""}`}
-                      />
-                      {checkingForUpdates
-                        ? t("settingsPage.general.updates.checking")
-                        : t("settingsPage.general.updates.checkForUpdates")}
-                    </Button>
-
-                    {isUpdateAvailable && !updateStatus.updateDownloaded && (
-                      <div className="space-y-2">
-                        <Button
-                          onClick={async () => {
-                            try {
-                              if (isManualUpdate && manualUpdateUrl) {
-                                await window.electronAPI.openExternal(manualUpdateUrl);
-                              } else {
-                                await downloadUpdate();
-                              }
-                            } catch (error: any) {
-                              showAlertDialog({
-                                title: t(
-                                  "settingsPage.general.updates.dialogs.downloadFailed.title"
-                                ),
-                                description: t(
-                                  "settingsPage.general.updates.dialogs.downloadFailed.description"
-                                ),
-                              });
-                            }
-                          }}
-                          disabled={downloadingUpdate}
-                          variant="success"
-                          className="w-full"
-                          size="sm"
-                        >
-                          <Download
-                            size={13}
-                            className={`mr-1.5 ${downloadingUpdate ? "animate-pulse" : ""}`}
-                          />
-                          {isManualUpdate
-                            ? t("settingsPage.general.updates.openReleasePage")
-                            : downloadingUpdate
-                              ? t("settingsPage.general.updates.downloading", {
-                                progress: Math.round(updateDownloadProgress),
-                              })
-                              : t("settingsPage.general.updates.downloadUpdate", {
-                                version: updateInfo?.version || "",
-                              })}
-                        </Button>
-
-                        {downloadingUpdate && (
-                          <div className="h-1 w-full overflow-hidden rounded-full bg-muted/50">
-                            <div
-                              className="h-full bg-success transition-all duration-200 rounded-full"
-                              style={{
-                                width: `${Math.min(100, Math.max(0, updateDownloadProgress))}%`,
-                              }}
-                            />
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {updateStatus.updateDownloaded && (
-                      <Button
-                        onClick={() => {
-                          showConfirmDialog({
-                            title: t("settingsPage.general.updates.dialogs.installUpdate.title"),
-                            description: t(
-                              "settingsPage.general.updates.dialogs.installUpdate.description",
-                              { version: updateInfo?.version || "" }
-                            ),
-                            confirmText: t(
-                              "settingsPage.general.updates.dialogs.installUpdate.confirmText"
-                            ),
-                            onConfirm: async () => {
-                              try {
-                                await installUpdateAction();
-                              } catch (error: any) {
-                                showAlertDialog({
-                                  title: t(
-                                    "settingsPage.general.updates.dialogs.installFailed.title"
-                                  ),
-                                  description: t(
-                                    "settingsPage.general.updates.dialogs.installFailed.description"
-                                  ),
-                                });
-                              }
-                            },
-                          });
-                        }}
-                        disabled={installInitiated}
-                        className="w-full"
-                        size="sm"
-                      >
-                        <RefreshCw
-                          size={14}
-                          className={`mr-2 ${installInitiated ? "animate-spin" : ""}`}
-                        />
-                        {installInitiated
-                          ? t("settingsPage.general.updates.restarting")
-                          : t("settingsPage.general.updates.installAndRestart")}
-                      </Button>
-                    )}
-                  </div>
-
-                  {updateInfo?.releaseNotes && (
-                    <div className="mt-4 pt-4 border-t border-border/30">
-                      <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-2">
-                        {t("settingsPage.general.updates.whatsNew", {
-                          version: updateInfo.version,
-                        })}
-                      </p>
-                      <div className="text-[12px] text-muted-foreground">
-                        <MarkdownRenderer content={updateInfo.releaseNotes} />
-                      </div>
-                    </div>
-                  )}
-                </SettingsPanelRow>
-              </SettingsPanel>
-            </div>
 
             {/* Appearance */}
             <div>
@@ -1580,18 +1228,6 @@ export default function SettingsPage({
                     </SettingsRow>
                   </SettingsPanelRow>
                 )}
-                <SettingsPanelRow>
-                  <SettingsRow
-                    label={t("settingsPage.general.startup.autoCheckUpdate")}
-                    description={t("settingsPage.general.startup.autoCheckUpdateDescription")}
-                  >
-                    <Toggle
-                      checked={autoCheckUpdateEnabled}
-                      onChange={(checked: boolean) => handleAutoCheckUpdateChange(checked)}
-                      disabled={autoCheckUpdateLoading}
-                    />
-                  </SettingsRow>
-                </SettingsPanelRow>
               </SettingsPanel>
             </div>
 

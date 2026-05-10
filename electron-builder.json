@@ -27,7 +27,6 @@
     "src/types/**/*",
     "src/utils.js",
     "src/utils/**/*",
-    "src/updater.js",
     "src/components.json",
     "!node_modules/.cache/**/*",
     "!src/node_modules/**/*",
@@ -202,11 +201,4 @@
       "height": 380
     }
   },
-  "publish": {
-    "provider": "github",
-    "owner": "GravityPoet",
-    "repo": "ChordVox",
-    "private": false,
-    "releaseType": "release"
-  }
 }

@@ -209,21 +209,6 @@
     }
   },
   "controlPanel": {
-    "update": {
-      "readyTitle": "Update ready to install",
-      "readyDescription": "Click 'Install Update' to restart with the latest version.",
-      "problemTitle": "Update ran into a problem",
-      "problemDescription": "We couldn't complete the update. Please try again later.",
-      "installTitle": "Install Update",
-      "installDescription": "ChordVox will restart to apply the update. Any in-progress work will be saved.",
-      "couldNotInstallTitle": "Couldn't install update",
-      "couldNotInstallDescription": "Something went wrong. Please try again.",
-      "couldNotDownloadTitle": "Couldn't download update",
-      "couldNotDownloadDescription": "Check your internet connection and try again.",
-      "installing": "Installing...",
-      "installButton": "Install Update",
-      "availableButton": "Update Available"
-    },
     "history": {
       "title": "Transcriptions",
       "couldNotLoadTitle": "Couldn't load your history",
@@ -1064,71 +1049,7 @@
       "startup": {
         "launchAtLogin": "Launch at login",
         "launchAtLoginDescription": "Start ChordVox automatically when you log in",
-        "autoCheckUpdate": "Auto Check for Updates",
-        "autoCheckUpdateDescription": "Automatically check for new versions when ChordVox starts (no auto-install)",
         "title": "Startup"
-      },
-      "updates": {
-        "badges": {
-          "dev": "Dev",
-          "latest": "Latest",
-          "update": "Update"
-        },
-        "checkForUpdates": "Check for Updates",
-        "checking": "Checking...",
-        "currentVersion": "Current version",
-        "devMode": "Running in development mode",
-        "dialogs": {
-          "almostThere": {
-            "description": "The update is almost ready. Please wait a moment.",
-            "title": "Almost there"
-          },
-          "checkFailed": {
-            "description": "We had trouble checking for updates. Please try again later. {{message}}",
-            "title": "Couldn't check for updates"
-          },
-          "downloadFailed": {
-            "description": "We had trouble downloading the update. Please try again.",
-            "title": "Couldn't download update"
-          },
-          "installFailed": {
-            "description": "We had trouble installing the update. Please try again.",
-            "title": "Couldn't install update"
-          },
-          "installUpdate": {
-            "confirmText": "Install & Restart",
-            "description": "ChordVox will restart to apply the update.",
-            "title": "Install Update"
-          },
-          "noUpdates": {
-            "description": "You're on the latest version.",
-            "title": "No Updates"
-          },
-          "manualUpdateAvailable": {
-            "confirmText": "Open download page",
-            "description": "Version v{{version}} is available. Automatic download isn't available in this environment, so please open the Release page to update.",
-            "title": "Update available"
-          },
-          "updateAvailable": {
-            "description": "Update available: v{{version}}",
-            "title": "Update Available"
-          },
-          "updateError": {
-            "description": "Something went wrong with the update. Please try again.",
-            "title": "Update Error"
-          }
-        },
-        "downloadUpdate": "Download Update {{version}}",
-        "downloading": "Downloading... {{progress}}%",
-        "openReleasePage": "Open download page",
-        "installAndRestart": "Install & Restart",
-        "latestVersion": "You're on the latest version",
-        "newVersion": "A newer version is available",
-        "newVersionAvailable": "New version available",
-        "restarting": "Restarting...",
-        "title": "Updates",
-        "versionPlaceholder": "—",
-        "whatsNew": "What's new in v{{version}}"
       }
     },
     "permissions": {

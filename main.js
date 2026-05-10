@@ -111,7 +111,6 @@ const SenseVoiceManager = require("./src/helpers/sensevoice");
 const ParaformerManager = require("./src/helpers/paraformer");
 const TrayManager = require("./src/helpers/tray");
 const IPCHandlers = require("./src/helpers/ipcHandlers");
-const UpdateManager = require("./src/updater");
 const GlobeKeyManager = require("./src/helpers/globeKeyManager");
 const DevServerManager = require("./src/helpers/devServerManager");
 const WindowsKeyManager = require("./src/helpers/windowsKeyManager");
@@ -129,7 +128,6 @@ let parakeetManager = null;
 let senseVoiceManager = null;
 let paraformerManager = null;
 let trayManager = null;
-let updateManager = null;
 let globeKeyManager = null;
 let windowsKeyManager = null;
 let globeKeyAlertShown = false;
@@ -176,7 +174,6 @@ function initializeCoreManagers() {
   parakeetManager = new ParakeetManager();
   senseVoiceManager = new SenseVoiceManager();
   paraformerManager = new ParaformerManager();
-  updateManager = new UpdateManager();
   windowsKeyManager = new WindowsKeyManager();
 
   // IPC handlers must be registered before window content loads
@@ -189,7 +186,6 @@ function initializeCoreManagers() {
     senseVoiceManager,
     paraformerManager,
     windowManager,
-    updateManager,
     windowsKeyManager,
     getTrayManager: () => trayManager,
   });
@@ -332,10 +328,6 @@ async function startApp() {
   trayManager.setCreateControlPanelCallback(() => windowManager.createControlPanelWindow());
   await trayManager.createTray();
 
-  updateManager.setWindows(windowManager.mainWindow, windowManager.controlPanelWindow);
-  if (environmentManager.getAutoCheckUpdate()) {
-    updateManager.checkForUpdatesOnStartup();
-  }
 
   if (process.platform === "darwin") {
     let globeKeyDownTime = 0;
@@ -704,9 +696,6 @@ if (gotSingleInstanceLock) {
     }
     if (windowsKeyManager) {
       windowsKeyManager.stop();
-    }
-    if (updateManager) {
-      updateManager.cleanup();
     }
     // Stop whisper server if running
     if (whisperManager) {

@@ -59,44 +59,6 @@ export interface AudioDiagnosticsResult {
   models: string[];
 }
 
-export interface UpdateCheckResult {
-  updateAvailable: boolean;
-  version?: string;
-  releaseDate?: string;
-  files?: any[];
-  releaseNotes?: string;
-  manualDownloadUrl?: string | null;
-  manualOnly?: boolean;
-  message?: string;
-  error?: string;
-}
-
-export interface UpdateStatusResult {
-  updateAvailable: boolean;
-  updateDownloaded: boolean;
-  isDevelopment: boolean;
-}
-
-export interface UpdateInfoResult {
-  version?: string;
-  releaseDate?: string;
-  releaseNotes?: string | null;
-  files?: any[];
-  manualDownloadUrl?: string | null;
-  manualOnly?: boolean;
-}
-
-export interface UpdateResult {
-  success: boolean;
-  message: string;
-  manual?: boolean;
-  url?: string;
-}
-
-export interface AppVersionResult {
-  version: string;
-}
-
 export interface WhisperDownloadProgressData {
   type: "progress" | "installing" | "complete" | "error";
   model: string;
@@ -611,21 +573,6 @@ declare global {
       appQuit: () => Promise<void>;
       cleanupApp: () => Promise<{ success: boolean; message: string }>;
 
-      // Update operations
-      checkForUpdates: () => Promise<UpdateCheckResult>;
-      downloadUpdate: () => Promise<UpdateResult>;
-      installUpdate: () => Promise<UpdateResult>;
-      getAppVersion: () => Promise<AppVersionResult>;
-      getUpdateStatus: () => Promise<UpdateStatusResult>;
-      getUpdateInfo: () => Promise<UpdateInfoResult | null>;
-
-      // Update event listeners
-      onUpdateAvailable: (callback: (event: any, info: any) => void) => () => void;
-      onUpdateNotAvailable: (callback: (event: any, info: any) => void) => () => void;
-      onUpdateDownloaded: (callback: (event: any, info: any) => void) => () => void;
-      onUpdateDownloadProgress: (callback: (event: any, progressObj: any) => void) => () => void;
-      onUpdateError: (callback: (event: any, error: any) => void) => () => void;
-
       openExternal: (url: string) => Promise<{ success: boolean; error?: string }>;
 
       // Hotkey management
@@ -733,10 +680,6 @@ declare global {
       // Auto-start at login
       getAutoStartEnabled?: () => Promise<boolean>;
       setAutoStartEnabled?: (enabled: boolean) => Promise<{ success: boolean; error?: string }>;
-
-      // Auto-check update management
-      getAutoCheckUpdate?: () => Promise<boolean>;
-      setAutoCheckUpdate?: (enabled: boolean) => Promise<{ success: boolean; error?: string }>;
 
       // AssemblyAI Streaming
       assemblyAiStreamingWarmup?: (options?: {

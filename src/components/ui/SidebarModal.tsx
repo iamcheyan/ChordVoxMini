@@ -23,7 +23,6 @@ interface SidebarModalProps<T extends string> {
   onSectionChange: (section: T) => void;
   children: React.ReactNode;
   sidebarWidth?: string;
-  version?: string;
 }
 
 export default function SidebarModal<T extends string>({
@@ -35,7 +34,6 @@ export default function SidebarModal<T extends string>({
   onSectionChange,
   children,
   sidebarWidth = "w-52",
-  version,
 }: SidebarModalProps<T>) {
   const isMac = React.useMemo(() => getCachedPlatform() === "darwin", []);
 
@@ -162,18 +160,6 @@ export default function SidebarModal<T extends string>({
                     </div>
                   ))}
                 </nav>
-
-                {/* Footer / version */}
-                {version && (
-                  <div className="px-3 py-2.5 border-t border-border/20 dark:border-border-subtle">
-                    <div className="flex items-center gap-1.5">
-                      <div className="h-1 w-1 rounded-full bg-success/60" />
-                      <span className="text-[9px] text-muted-foreground/40 tabular-nums tracking-wide">
-                        v{version}
-                      </span>
-                    </div>
-                  </div>
-                )}
               </div>
 
               {/* Main Content */}

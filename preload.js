@@ -175,21 +175,6 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.invoke("set-main-window-interactivity", interactive),
   resizeMainWindow: (sizeKey) => ipcRenderer.invoke("resize-main-window", sizeKey),
 
-  // Update functions
-  checkForUpdates: () => ipcRenderer.invoke("check-for-updates"),
-  downloadUpdate: () => ipcRenderer.invoke("download-update"),
-  installUpdate: () => ipcRenderer.invoke("install-update"),
-  getAppVersion: () => ipcRenderer.invoke("get-app-version"),
-  getUpdateStatus: () => ipcRenderer.invoke("get-update-status"),
-  getUpdateInfo: () => ipcRenderer.invoke("get-update-info"),
-
-  // Update event listeners
-  onUpdateAvailable: registerListener("update-available"),
-  onUpdateNotAvailable: registerListener("update-not-available"),
-  onUpdateDownloaded: registerListener("update-downloaded"),
-  onUpdateDownloadProgress: registerListener("update-download-progress"),
-  onUpdateError: registerListener("update-error"),
-
   // Audio event listeners
   onNoAudioDetected: registerListener("no-audio-detected"),
 
@@ -250,13 +235,13 @@ contextBridge.exposeInMainWorld("electronAPI", {
   importSettingsFile: () => ipcRenderer.invoke("import-settings-file"),
 
   // Local reasoning
-  processLocalReasoning: (text, modelId, agentName, config) =>
-    ipcRenderer.invoke("process-local-reasoning", text, modelId, agentName, config),
+  processLocalReasoning: (text, modelId, config) =>
+    ipcRenderer.invoke("process-local-reasoning", text, modelId, config),
   checkLocalReasoningAvailable: () => ipcRenderer.invoke("check-local-reasoning-available"),
 
   // Anthropic reasoning
-  processAnthropicReasoning: (text, modelId, agentName, config) =>
-    ipcRenderer.invoke("process-anthropic-reasoning", text, modelId, agentName, config),
+  processAnthropicReasoning: (text, modelId, config) =>
+    ipcRenderer.invoke("process-anthropic-reasoning", text, modelId, config),
 
   // llama.cpp
   llamaCppCheck: () => ipcRenderer.invoke("llama-cpp-check"),
@@ -363,11 +348,6 @@ contextBridge.exposeInMainWorld("electronAPI", {
   ),
 
   // Auto-start management
-  // Auto-start management
   getAutoStartEnabled: () => ipcRenderer.invoke("get-auto-start-enabled"),
   setAutoStartEnabled: (enabled) => ipcRenderer.invoke("set-auto-start-enabled", enabled),
-
-  // Auto-check-update management
-  getAutoCheckUpdate: () => ipcRenderer.invoke("get-auto-check-update"),
-  setAutoCheckUpdate: (enabled) => ipcRenderer.invoke("set-auto-check-update", enabled),
 });
