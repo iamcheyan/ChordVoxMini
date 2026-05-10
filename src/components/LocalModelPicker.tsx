@@ -18,6 +18,7 @@ export interface LocalModel {
   isDownloaded?: boolean;
   downloaded?: boolean;
   recommended?: boolean;
+  modelPath?: string;
 }
 
 export interface LocalProvider {
@@ -50,40 +51,40 @@ export default function LocalModelPicker({
   onDownloadComplete,
 }: LocalModelPickerProps) {
   const { t } = useTranslation();
-  const [downloadedModels, setDownloadedModels] = useState<Set<string>>(new Set());
+  const [downloadedModels, setDownloadedModels] = useState<Map<string, string>>(new Map());
 
   const { confirmDialog, showConfirmDialog, hideConfirmDialog } = useDialogs();
   const styles = useMemo(() => MODEL_PICKER_COLORS[colorScheme], [colorScheme]);
 
   const loadDownloadedModels = useCallback(async () => {
     try {
-      let downloaded = new Set<string>();
+      let downloaded = new Map<string, string>();
       if (modelType === "whisper") {
         const result = await window.electronAPI?.listWhisperModels();
         if (result?.success) {
-          downloaded = new Set(
-            result.models
-              .filter((m: { downloaded?: boolean }) => m.downloaded)
-              .map((m: { model: string }) => m.model)
-          );
+          result.models
+            .filter((m: { downloaded?: boolean }) => m.downloaded)
+            .forEach((m: { model: string; path?: string }) => {
+              downloaded.set(m.model, m.path || "");
+            });
         }
       } else if (modelType === "parakeet") {
         const result = await window.electronAPI?.listParakeetModels();
         if (result?.success) {
-          downloaded = new Set(
-            result.models
-              .filter((m: { downloaded?: boolean }) => m.downloaded)
-              .map((m: { model: string }) => m.model)
-          );
+          result.models
+            .filter((m: { downloaded?: boolean }) => m.downloaded)
+            .forEach((m: { model: string; modelPath?: string; path?: string }) => {
+              downloaded.set(m.model, m.modelPath || m.path || "");
+            });
         }
       } else {
         const result = await window.electronAPI?.modelGetAll?.();
         if (result && Array.isArray(result)) {
-          downloaded = new Set(
-            result
-              .filter((m: { isDownloaded?: boolean }) => m.isDownloaded)
-              .map((m: { id: string }) => m.id)
-          );
+          result
+            .filter((m: { isDownloaded?: boolean }) => m.isDownloaded)
+            .forEach((m: { id: string; path?: string; modelPath?: string }) => {
+              downloaded.set(m.id, m.path || m.modelPath || "");
+            });
         }
       }
       setDownloadedModels(downloaded);
@@ -180,6 +181,7 @@ export default function LocalModelPicker({
               isDownloaded:
                 downloadedModels.has(model.id) || model.isDownloaded || model.downloaded,
               isDownloading: isDownloadingModel(model.id),
+              modelPath: model.modelPath || downloadedModels.get(model.id),
             })
           )}
           selectedModel={selectedModel}

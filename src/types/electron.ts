@@ -410,6 +410,7 @@ declare global {
         localTranscriptionProvider: LocalTranscriptionProvider;
         model?: string;
         senseVoiceBinaryPath?: string;
+        paraformerBinaryPath?: string;
         reasoningProvider: string;
         reasoningModel?: string;
         localModelsDir?: string;
@@ -537,6 +538,25 @@ declare global {
       cancelParaformerDownload: () => Promise<{
         success: boolean;
         message?: string;
+        error?: string;
+      }>;
+      checkParaformerBinaryStatus: () => Promise<{ installed: boolean; path: string }>;
+      downloadParaformerBinary: () => Promise<{
+        success: boolean;
+        path?: string;
+        error?: string;
+      }>;
+      onParaformerBinaryDownloadProgress: (
+        callback: (event: any, data: {
+          type: "download" | "extract" | "complete" | "error";
+          percentage: number;
+          downloadedBytes?: number;
+          totalBytes?: number;
+          error?: string;
+        }) => void
+      ) => () => void;
+      cancelParaformerBinaryDownload: () => Promise<{
+        success: boolean;
         error?: string;
       }>;
       pickParaformerModelFile: (defaultPath?: string) => Promise<FilePickResult>;

@@ -143,6 +143,10 @@ contextBridge.exposeInMainWorld("electronAPI", {
   pickParaformerModelFile: (defaultPath) =>
     ipcRenderer.invoke("pick-paraformer-model-file", defaultPath),
   pickParaformerBinary: (defaultPath) => ipcRenderer.invoke("pick-paraformer-binary", defaultPath),
+  checkParaformerBinaryStatus: () => ipcRenderer.invoke("check-paraformer-binary-status"),
+  downloadParaformerBinary: () => ipcRenderer.invoke("download-paraformer-binary"),
+  onParaformerBinaryDownloadProgress: registerListener("paraformer-binary-download-progress"),
+  cancelParaformerBinaryDownload: () => ipcRenderer.invoke("cancel-paraformer-binary-download"),
   pickModelsDirectory: (defaultPath) => ipcRenderer.invoke("pick-models-directory", defaultPath),
 
   // Parakeet server functions (faster repeated transcriptions)
@@ -229,6 +233,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
   saveCustomTranscriptionKey: (key) => ipcRenderer.invoke("save-custom-transcription-key", key),
   getCustomReasoningKey: () => ipcRenderer.invoke("get-custom-reasoning-key"),
   saveCustomReasoningKey: (key) => ipcRenderer.invoke("save-custom-reasoning-key", key),
+  getLocalModelsDir: () => ipcRenderer.invoke("get-local-models-dir"),
+  saveLocalModelsDir: (dir) => ipcRenderer.invoke("save-local-models-dir", dir),
 
   // Dictation key persistence (file-based for reliable startup)
   getDictationKey: () => ipcRenderer.invoke("get-dictation-key"),

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { Download, Trash2, Cloud, Lock, X } from "lucide-react";
+import { Download, Trash2, Cloud, Lock, X, AlertTriangle, ExternalLink } from "lucide-react";
 import { ProviderIcon } from "./ui/ProviderIcon";
 import { ProviderTabs } from "./ui/ProviderTabs";
 import ModelCardList from "./ui/ModelCardList";
@@ -26,7 +26,8 @@ import {
 } from "../utils/modelPickerStyles";
 import { getProviderIcon, isMonochromeProvider } from "../utils/providerIcons";
 import { API_ENDPOINTS } from "../config/constants";
-import { createExternalLinkHandler } from "../utils/externalLinks";
+import { createExternalLinkHandler, openExternalLink } from "../utils/externalLinks";
+import { InfoBox } from "./ui/InfoBox";
 
 interface LocalModel {
   model: string;
@@ -54,6 +55,7 @@ interface LocalModelCardProps {
   onDownload: () => void;
   onCancel: () => void;
   styles: ModelPickerStyles;
+  modelPath?: string;
 }
 
 function LocalModelCard({
@@ -74,6 +76,7 @@ function LocalModelCard({
   onDownload,
   onCancel,
   styles: cardStyles,
+  modelPath,
 }: LocalModelCardProps) {
   const { t } = useTranslation();
   const handleClick = () => {
@@ -126,6 +129,14 @@ function LocalModelCard({
             </span>
           )}
         </div>
+
+        {isDownloaded && modelPath && (
+          <div className="px-2.5 pb-2 -mt-0.5">
+            <div className="text-[10px] text-muted-foreground/40 font-mono truncate bg-muted/30 px-1.5 py-0.5 rounded-sm border border-border/20">
+              {modelPath}
+            </div>
+          </div>
+        )}
 
         <div className="flex items-center gap-1.5 shrink-0">
           {isDownloaded ? (
@@ -308,6 +319,14 @@ export default function TranscriptionModelPicker({
   const [parakeetModels, setParakeetModels] = useState<LocalModel[]>([]);
   const [senseVoiceModels, setSenseVoiceModels] = useState<LocalModel[]>([]);
   const [paraformerModels, setParaformerModels] = useState<LocalModel[]>([]);
+  const [senseVoiceBinaryStatus, setSenseVoiceBinaryStatus] = useState<
+    "checking" | "installed" | "missing"
+  >("checking");
+  const [paraformerBinaryStatus, setParaformerBinaryStatus] = useState<
+    "checking" | "installed" | "missing"
+  >("checking");
+  const [isDownloadingParaformerBinary, setIsDownloadingParaformerBinary] = useState(false);
+  const [paraformerBinaryDownloadProgress, setParaformerBinaryDownloadProgress] = useState(0);
   const [internalLocalProvider, setInternalLocalProvider] = useState(selectedLocalProvider);
   const hasLoadedRef = useRef(false);
   const hasLoadedParakeetRef = useRef(false);
@@ -500,6 +519,101 @@ export default function TranscriptionModelPicker({
       loadParaformerModelsRef.current?.();
     }
   }, [useLocalWhisper, internalLocalProvider]);
+
+  useEffect(() => {
+    if (!useLocalWhisper || internalLocalProvider !== "sensevoice") {
+      setSenseVoiceBinaryStatus("checking");
+      return;
+    }
+
+    let cancelled = false;
+    setSenseVoiceBinaryStatus("checking");
+
+    const check = async () => {
+      try {
+        const result = await window.electronAPI?.checkSenseVoiceInstallation?.(
+          senseVoiceBinaryPath || ""
+        );
+        if (cancelled) return;
+        setSenseVoiceBinaryStatus(
+          result?.installed && result?.working ? "installed" : "missing"
+        );
+      } catch {
+        if (!cancelled) setSenseVoiceBinaryStatus("missing");
+      }
+    };
+
+    check();
+    return () => {
+      cancelled = true;
+    };
+  }, [useLocalWhisper, internalLocalProvider, senseVoiceBinaryPath]);
+
+  // Paraformer binary status check
+  useEffect(() => {
+    if (!useLocalWhisper || internalLocalProvider !== "paraformer") {
+      setParaformerBinaryStatus("checking");
+      return;
+    }
+
+    let cancelled = false;
+    setParaformerBinaryStatus("checking");
+
+    const check = async () => {
+      try {
+        const result = await window.electronAPI?.checkParaformerBinaryStatus?.();
+        if (cancelled) return;
+        setParaformerBinaryStatus(result?.installed ? "installed" : "missing");
+      } catch {
+        if (!cancelled) setParaformerBinaryStatus("missing");
+      }
+    };
+
+    check();
+    return () => {
+      cancelled = true;
+    };
+  }, [useLocalWhisper, internalLocalProvider]);
+
+  // Paraformer binary download progress listener
+  useEffect(() => {
+    if (!useLocalWhisper || internalLocalProvider !== "paraformer") return;
+
+    const dispose = window.electronAPI?.onParaformerBinaryDownloadProgress?.(
+      (_event: unknown, data: { type: string; percentage: number }) => {
+        if (data.type === "complete") {
+          setIsDownloadingParaformerBinary(false);
+          setParaformerBinaryDownloadProgress(0);
+          window.electronAPI?.checkParaformerBinaryStatus?.().then((result) => {
+            setParaformerBinaryStatus(result?.installed ? "installed" : "missing");
+          });
+        } else if (data.type === "error") {
+          setIsDownloadingParaformerBinary(false);
+          setParaformerBinaryDownloadProgress(0);
+        } else {
+          setParaformerBinaryDownloadProgress(data.percentage);
+        }
+      }
+    );
+
+    return () => {
+      dispose?.();
+    };
+  }, [useLocalWhisper, internalLocalProvider]);
+
+  const handleDownloadParaformerBinary = useCallback(async () => {
+    if (isDownloadingParaformerBinary) return;
+    setIsDownloadingParaformerBinary(true);
+    setParaformerBinaryDownloadProgress(0);
+    try {
+      const result = await window.electronAPI?.downloadParaformerBinary?.();
+      if (!result?.success) {
+        console.error("[TranscriptionModelPicker] Failed to download Paraformer binary:", result?.error);
+      }
+    } catch (error) {
+      console.error("[TranscriptionModelPicker] Failed to download Paraformer binary:", error);
+    }
+  }, [isDownloadingParaformerBinary]);
 
   useEffect(() => {
     if (useLocalWhisper) return;
@@ -1068,6 +1182,7 @@ export default function TranscriptionModelPicker({
                 }
                 onCancel={cancelDownload}
                 styles={styles}
+                modelPath={model.path}
               />
             );
           })}
@@ -1177,6 +1292,7 @@ export default function TranscriptionModelPicker({
                 }
                 onCancel={cancelParakeetDownload}
                 styles={styles}
+                modelPath={model.modelPath || model.path}
               />
             );
           })}
@@ -1317,6 +1433,7 @@ export default function TranscriptionModelPicker({
                 }
                 onCancel={cancelSenseVoiceDownload}
                 styles={styles}
+                modelPath={model.modelPath || model.path}
               />
             );
           })}
@@ -1347,6 +1464,46 @@ export default function TranscriptionModelPicker({
             </Button>
           </div>
         </div>
+
+        {senseVoiceBinaryStatus === "missing" && (
+          <InfoBox variant="warning" className="space-y-2">
+            <div className="flex items-start gap-2">
+              <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" style={{ color: "var(--color-warning)" }} />
+              <div className="space-y-1.5">
+                <p className="text-sm font-medium text-foreground">
+                  需要 SenseVoice 推理引擎
+                </p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  SenseVoice 模型文件（.gguf）需要配套的 C++ 推理引擎 sense-voice-main 才能运行。
+                  由于该引擎暂无官方预编译版本，你需要手动编译或下载。
+                </p>
+                <div className="flex items-center gap-2 pt-1">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs gap-1"
+                    onClick={() =>
+                      openExternalLink("https://github.com/lovemefan/SenseVoice.cpp")
+                    }
+                  >
+                    <ExternalLink size={12} />
+                    查看编译指南
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="default"
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={handlePickSenseVoiceBinary}
+                  >
+                    选择已编译的二进制
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </InfoBox>
+        )}
 
         <div className="space-y-1.5">
           <label className="text-xs font-medium text-foreground">
@@ -1425,6 +1582,7 @@ export default function TranscriptionModelPicker({
                 }
                 onCancel={cancelParaformerDownload}
                 styles={styles}
+                modelPath={model.modelPath || model.path}
               />
             );
           })}
@@ -1455,6 +1613,59 @@ export default function TranscriptionModelPicker({
             </Button>
           </div>
         </div>
+
+        {/* Paraformer binary status */}
+        {paraformerBinaryStatus === "missing" && !isDownloadingParaformerBinary && (
+          <InfoBox variant="warning" className="space-y-2">
+            <div className="flex items-start gap-2">
+              <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" style={{ color: "var(--color-warning)" }} />
+              <div className="space-y-1.5">
+                <p className="text-sm font-medium text-foreground">需要 Paraformer 推理引擎</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Paraformer 模型需要配套的推理引擎 paraformer-main 才能运行。
+                  点击下方按钮自动下载预编译版本。
+                </p>
+                <div className="flex items-center gap-2 pt-1">
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="h-7 text-xs gap-1"
+                    onClick={handleDownloadParaformerBinary}
+                  >
+                    <Download className="h-3.5 w-3.5" />
+                    下载推理引擎
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </InfoBox>
+        )}
+
+        {isDownloadingParaformerBinary && (
+          <div className="space-y-1.5 rounded-md border border-border/50 bg-muted/20 px-2.5 py-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-foreground">正在下载推理引擎...</span>
+              <span className="text-[11px] text-muted-foreground">{paraformerBinaryDownloadProgress}%</span>
+            </div>
+            <div className="h-1.5 w-full rounded-full bg-border/50 overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-300"
+                style={{
+                  width: `${paraformerBinaryDownloadProgress}%`,
+                  background: "var(--color-primary)",
+                }}
+              />
+            </div>
+          </div>
+        )}
+
+        {paraformerBinaryStatus === "installed" && (
+          <div className="rounded-md border border-green-500/20 bg-green-500/5 px-2.5 py-2">
+            <p className="text-[11px] text-green-600 dark:text-green-400 leading-relaxed">
+              ✓ 推理引擎已就绪
+            </p>
+          </div>
+        )}
 
         <div className="space-y-1.5">
           <label className="text-xs font-medium text-foreground">

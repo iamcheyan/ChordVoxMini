@@ -240,7 +240,9 @@ function TranscriptionSection({
             ? parakeetModel
             : localTranscriptionProvider === "sensevoice"
               ? senseVoiceModelPath
-              : whisperModel
+              : localTranscriptionProvider === "paraformer"
+                ? paraformerModelPath
+                : whisperModel
         }
         onLocalModelSelect={(modelId, providerId) => {
           const targetProvider = providerId || localTranscriptionProvider;
@@ -248,6 +250,8 @@ function TranscriptionSection({
             setParakeetModel(modelId);
           } else if (targetProvider === "sensevoice") {
             setSenseVoiceModelPath(modelId);
+          } else if (targetProvider === "paraformer") {
+            setParaformerModelPath(modelId);
           } else {
             setWhisperModel(modelId);
           }
@@ -1640,6 +1644,10 @@ export default function SettingsPage({
             setSenseVoiceModelPath={setSenseVoiceModelPath}
             senseVoiceBinaryPath={senseVoiceBinaryPath}
             setSenseVoiceBinaryPath={setSenseVoiceBinaryPath}
+            paraformerModelPath={paraformerModelPath}
+            setParaformerModelPath={setParaformerModelPath}
+            paraformerBinaryPath={paraformerBinaryPath}
+            setParaformerBinaryPath={setParaformerBinaryPath}
             openaiApiKey={openaiApiKey}
             setOpenaiApiKey={setOpenaiApiKey}
             groqApiKey={groqApiKey}

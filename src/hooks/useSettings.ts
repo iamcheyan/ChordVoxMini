@@ -721,6 +721,10 @@ function useSettingsInternal() {
             typeof parsed.senseVoiceModelPath === "string" ? parsed.senseVoiceModelPath : "",
           senseVoiceBinaryPath:
             typeof parsed.senseVoiceBinaryPath === "string" ? parsed.senseVoiceBinaryPath : "",
+          paraformerModelPath:
+            typeof parsed.paraformerModelPath === "string" ? parsed.paraformerModelPath : "",
+          paraformerBinaryPath:
+            typeof parsed.paraformerBinaryPath === "string" ? parsed.paraformerBinaryPath : "",
           allowOpenAIFallback: parsed.allowOpenAIFallback === true,
           allowLocalFallback: parsed.allowLocalFallback === true,
           fallbackWhisperModel:
@@ -967,6 +971,10 @@ function useSettingsInternal() {
         setSenseVoiceModelPath(settings.senseVoiceModelPath);
       if (settings.senseVoiceBinaryPath !== undefined)
         setSenseVoiceBinaryPath(settings.senseVoiceBinaryPath);
+      if (settings.paraformerModelPath !== undefined)
+        setParaformerModelPath(settings.paraformerModelPath);
+      if (settings.paraformerBinaryPath !== undefined)
+        setParaformerBinaryPath(settings.paraformerBinaryPath);
       if (settings.allowOpenAIFallback !== undefined)
         setAllowOpenAIFallback(settings.allowOpenAIFallback);
       if (settings.allowLocalFallback !== undefined)

@@ -723,6 +723,33 @@ class IPCHandlers {
       return this.paraformerManager.cancelDownload();
     });
 
+    // Paraformer binary download
+    ipcMain.handle("check-paraformer-binary-status", async () => {
+      return this.paraformerManager.checkBinaryStatus();
+    });
+
+    ipcMain.handle("download-paraformer-binary", async (event) => {
+      try {
+        const result = await this.paraformerManager.downloadBinary(
+          (progressData) => {
+            event.sender.send("paraformer-binary-download-progress", progressData);
+          }
+        );
+        return result;
+      } catch (error) {
+        event.sender.send("paraformer-binary-download-progress", {
+          type: "error",
+          percentage: 0,
+          error: error.message,
+        });
+        return { success: false, error: error.message };
+      }
+    });
+
+    ipcMain.handle("cancel-paraformer-binary-download", async () => {
+      return this.paraformerManager.cancelBinaryDownload();
+    });
+
     ipcMain.handle("pick-models-directory", async (event, defaultPath = "") => {
       try {
         const targetWindow = BrowserWindow.fromWebContents(event.sender);

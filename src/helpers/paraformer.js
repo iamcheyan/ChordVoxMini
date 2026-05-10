@@ -19,6 +19,29 @@ const modelRegistryData = require("../models/modelRegistryData.json");
 
 const DEFAULT_TIMEOUT_MS = 300000;
 
+// sherpa-onnx release version whose binary can serve as paraformer-main CLI
+const SHERPA_ONNX_VERSION = "1.12.23";
+const SHERPA_ONNX_RELEASE_URL = `https://github.com/k2-fsa/sherpa-onnx/releases/download/v${SHERPA_ONNX_VERSION}`;
+
+const SHERPA_RELEASE_INFO = {
+  "darwin-arm64": {
+    archiveName: `sherpa-onnx-v${SHERPA_ONNX_VERSION}-osx-universal2-shared.tar.bz2`,
+    libPattern: "*.dylib",
+  },
+  "darwin-x64": {
+    archiveName: `sherpa-onnx-v${SHERPA_ONNX_VERSION}-osx-universal2-shared.tar.bz2`,
+    libPattern: "*.dylib",
+  },
+  "win32-x64": {
+    archiveName: `sherpa-onnx-v${SHERPA_ONNX_VERSION}-win-x64-shared.tar.bz2`,
+    libPattern: "*.dll",
+  },
+  "linux-x64": {
+    archiveName: `sherpa-onnx-v${SHERPA_ONNX_VERSION}-linux-x64-shared.tar.bz2`,
+    libPattern: "*.so*",
+  },
+};
+
 function getParaformerModelConfig(modelName) {
   const modelInfo = modelRegistryData.paraformerModels?.[modelName];
   if (!modelInfo) return null;
@@ -103,10 +126,44 @@ class ParaformerManager {
   constructor() {
     this.cachedBinaryPath = null;
     this.currentDownloadProcess = null;
+    this.currentBinaryDownload = null;
+    this._server = null;
+  }
+
+  _getServer() {
+    if (!this._server) {
+      const ParaformerServerManager = require("./paraformerServer");
+      this._server = new ParaformerServerManager();
+    }
+    return this._server;
+  }
+
+  async stopServer() {
+    if (this._server) {
+      await this._server.stopServer();
+    }
+  }
+
+  getServerStatus() {
+    return this._server ? this._server.getServerStatus() : { running: false };
   }
 
   getModelsDir() {
     return getModelsDirForService("paraformer");
+  }
+
+  getBinDir() {
+    const homeDir = os.homedir();
+    return path.join(homeDir, ".cache", "chordvox", "bin");
+  }
+
+  _getSherpaReleaseInfo() {
+    const key = `${process.platform}-${process.arch}`;
+    const info = SHERPA_RELEASE_INFO[key];
+    if (!info) {
+      throw new Error(`Unsupported platform for Paraformer binary download: ${key}`);
+    }
+    return info;
   }
 
   validateModelName(modelName) {
@@ -159,6 +216,9 @@ class ParaformerManager {
       candidates.push(process.env.PARAFORMER_BINARY_PATH);
     }
 
+    // Check the download bin dir (~/.cache/chordvox/bin/)
+    candidates.push(path.join(this.getBinDir(), binaryName));
+
     const home = os.homedir();
     candidates.push(
       path.join(home, "Tools", "Paraformer.cpp", "build", "bin", binaryName),
@@ -195,6 +255,183 @@ class ParaformerManager {
     );
   }
 
+  checkBinaryStatus() {
+    try {
+      const resolved = this._resolveBinaryPath();
+      return { installed: true, path: resolved };
+    } catch {
+      return { installed: false, path: "" };
+    }
+  }
+
+  async downloadBinary(progressCallback) {
+    const releaseInfo = this._getSherpaReleaseInfo();
+    const binDir = this.getBinDir();
+    await fsPromises.mkdir(binDir, { recursive: true });
+
+    const binaryName = this._getBinaryName();
+    const outputPath = path.join(binDir, binaryName);
+
+    // Check if already installed
+    if (ensureExecutable(outputPath)) {
+      debugLogger.info("Paraformer binary already installed", { path: outputPath });
+      return { success: true, path: outputPath };
+    }
+
+    const url = `${SHERPA_ONNX_RELEASE_URL}/${releaseInfo.archiveName}`;
+    const archivePath = path.join(getSafeTempDir(), releaseInfo.archiveName);
+    const extractDir = path.join(getSafeTempDir(), `sherpa-extract-${Date.now()}`);
+
+    try {
+      // Progress: downloading
+      if (progressCallback) {
+        progressCallback({ type: "download", percentage: 0 });
+      }
+
+      const { signal, abort } = createDownloadSignal();
+      this.currentBinaryDownload = { abort };
+
+      await downloadFile(url, archivePath, {
+        timeout: 600000,
+        signal,
+        onProgress: (downloadedBytes, totalBytes) => {
+          if (progressCallback) {
+            const pct = totalBytes > 0 ? Math.round((downloadedBytes / totalBytes) * 90) : 0;
+            progressCallback({
+              type: "download",
+              percentage: pct,
+              downloadedBytes,
+              totalBytes,
+            });
+          }
+        },
+      });
+
+      // Progress: extracting
+      if (progressCallback) {
+        progressCallback({ type: "extract", percentage: 92 });
+      }
+
+      // Extract tarball
+      await fsPromises.mkdir(extractDir, { recursive: true });
+      const { execSync } = require("child_process");
+      try {
+        execSync(`tar -xjf "${archivePath}" -C "${extractDir}"`, { timeout: 120000 });
+      } catch (extractError) {
+        throw new Error(`Extraction failed: ${extractError.message}`);
+      }
+
+      // Find the offline CLI binary in the extracted directory
+      const offlineBinaryPath = this._findFileInDir(extractDir, "sherpa-onnx-offline");
+      if (!offlineBinaryPath || !fs.existsSync(offlineBinaryPath)) {
+        throw new Error("sherpa-onnx-offline binary not found in extracted archive");
+      }
+
+      // Copy the binary to the target location
+      fs.copyFileSync(offlineBinaryPath, outputPath);
+      fs.chmodSync(outputPath, 0o755);
+
+      // Copy shared libraries alongside the binary
+      const libPatterns = {
+        "darwin": "*.dylib",
+        "win32": "*.dll",
+        "linux": "*.so",
+      };
+      const pattern = libPatterns[process.platform];
+      if (pattern) {
+        const libDir = path.dirname(outputPath);
+        const libs = this._findFilesByPattern(extractDir, pattern);
+        for (const libPath of libs) {
+          const libName = path.basename(libPath);
+          const destPath = path.join(libDir, libName);
+          if (!fs.existsSync(destPath)) {
+            fs.copyFileSync(libPath, destPath);
+            if (process.platform !== "win32") {
+              fs.chmodSync(destPath, 0o755);
+            }
+          }
+        }
+      }
+
+      // Progress: complete
+      if (progressCallback) {
+        progressCallback({ type: "complete", percentage: 100 });
+      }
+
+      // Clear cached path so next resolve picks up the new binary
+      this.cachedBinaryPath = null;
+
+      debugLogger.info("Paraformer binary installed", { path: outputPath });
+      return { success: true, path: outputPath };
+    } catch (error) {
+      if (error.isAbort) {
+        return { success: false, error: "Download cancelled by user" };
+      }
+      debugLogger.error("Failed to download Paraformer binary", error);
+      if (progressCallback) {
+        progressCallback({ type: "error", percentage: 0, error: error.message });
+      }
+      return { success: false, error: error.message };
+    } finally {
+      this.currentBinaryDownload = null;
+      // Cleanup temp files
+      try { if (fs.existsSync(archivePath)) fs.unlinkSync(archivePath); } catch {}
+      try { if (fs.existsSync(extractDir)) fs.rmSync(extractDir, { recursive: true, force: true }); } catch {}
+    }
+  }
+
+  cancelBinaryDownload() {
+    if (this.currentBinaryDownload) {
+      this.currentBinaryDownload.abort();
+      this.currentBinaryDownload = null;
+      return { success: true };
+    }
+    return { success: false, error: "No active binary download" };
+  }
+
+  _findFileInDir(dir, fileName, maxDepth = 5, depth = 0) {
+    if (depth >= maxDepth) return null;
+    let entries;
+    try { entries = fs.readdirSync(dir, { withFileTypes: true }); }
+    catch { return null; }
+
+    for (const entry of entries) {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        const found = this._findFileInDir(fullPath, fileName, maxDepth, depth + 1);
+        if (found) return found;
+      } else if (entry.name === fileName) {
+        return fullPath;
+      }
+    }
+    return null;
+  }
+
+  _findFilesByPattern(dir, pattern, maxDepth = 5, depth = 0) {
+    if (depth >= maxDepth) return [];
+    let entries;
+    try { entries = fs.readdirSync(dir, { withFileTypes: true }); }
+    catch { return []; }
+
+    const matches = (name) => {
+      if (pattern === "*.dylib") return name.endsWith(".dylib");
+      if (pattern === "*.dll") return name.endsWith(".dll");
+      if (pattern === "*.so*") return /\.so(\.\d+)*$/.test(name) || name.endsWith(".so");
+      return name.endsWith(pattern.slice(1));
+    };
+
+    const results = [];
+    for (const entry of entries) {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        results.push(...this._findFilesByPattern(fullPath, pattern, maxDepth, depth + 1));
+      } else if (matches(entry.name)) {
+        results.push(fullPath);
+      }
+    }
+    return results;
+  }
+
   _resolveModelPath(modelPath) {
     const resolved = String(modelPath || process.env.PARAFORMER_MODEL_PATH || "").trim();
     if (!resolved) {
@@ -226,41 +463,43 @@ class ParaformerManager {
   }
 
   _extractText(output) {
-    const lines = String(output || "")
-      .split(/\r?\n/)
-      .map((line) => line.trim())
-      .filter(Boolean);
+    if (!output) return "";
 
-    if (lines.length === 0) return "";
+    // Split into lines and process reverse to find the most recent result
+    const lines = output.split(/\r?\n/).filter(Boolean);
 
-    const segmentTexts = [];
-    for (const line of lines) {
-      const segmentMatch = line.match(/^\[\s*\d+(?:\.\d+)?-\d+(?:\.\d+)?\]\s+(.+)$/);
-      if (segmentMatch?.[1]) {
-        segmentTexts.push(segmentMatch[1].trim());
+    // Try to parse sherpa-onnx JSON output format: {"text": "...", "tokens": [...]}
+    for (let i = lines.length - 1; i >= 0; i--) {
+      const line = lines[i].trim();
+      try {
+        const parsed = JSON.parse(line);
+        if (parsed.text && typeof parsed.text === "string" && parsed.text.trim()) {
+          return normalizeTranscript(parsed.text);
+        }
+      } catch {
+        // Not JSON, continue
       }
-    }
 
-    if (segmentTexts.length > 0) {
-      return normalizeTranscript(segmentTexts.join(" "));
-    }
-
-    const noisePrefixes = [
-      "paraformer_",
-      "ggml_",
-      "main:",
-      "system_info:",
-      "usage:",
-      "error:",
-      "warning:",
-    ];
-
-    for (let i = lines.length - 1; i >= 0; i -= 1) {
-      const line = lines[i];
+      // Also try to match a plain text line that isn't a known noise line
       const lower = line.toLowerCase();
-      if (noisePrefixes.some((prefix) => lower.startsWith(prefix))) {
+      if (
+        line.startsWith("----") ||
+        lower.includes("num threads") ||
+        lower.includes("decoding method") ||
+        lower.includes("elapsed seconds") ||
+        lower.includes("real time factor") ||
+        lower.includes("creating recognizer") ||
+        lower.includes("recognizer created") ||
+        lower.startsWith("started") ||
+        lower.startsWith("done") ||
+        lower.includes(".cc:") ||
+        lower.endsWith(".wav") ||
+        lower.endsWith(".mp3") ||
+        line.startsWith("OfflineRecognizerConfig")
+      ) {
         continue;
       }
+
       const normalized = normalizeTranscript(line);
       if (normalized) {
         return normalized;
@@ -534,8 +773,37 @@ class ParaformerManager {
 
   async transcribeLocalParaformer(audioBlob, options = {}) {
     const modelPath = this._resolveModelPath(options.modelPath);
+
+    try {
+      const audioBuffer = toAudioBuffer(audioBlob);
+      if (!audioBuffer || audioBuffer.length === 0) {
+        throw new Error("Audio buffer is empty - no audio data received");
+      }
+
+      // Use persistent WS server for fast transcription (model stays in memory)
+      const server = this._getServer();
+      if (server.isAvailable()) {
+        const result = await server.transcribe(audioBuffer, { modelPath });
+        if (result.text) {
+          return { success: true, text: result.text };
+        }
+        return { success: false, message: "No audio detected" };
+      }
+
+      throw new Error("Paraformer WS server binary not found");
+    } catch (error) {
+      // Fallback: CLI spawn
+      debugLogger.warn("Paraformer server transcription failed, falling back to CLI", {
+        error: error.message,
+      });
+
+      return this._transcribeWithCli(audioBlob, options);
+    }
+  }
+
+  async _transcribeWithCli(audioBlob, options = {}) {
+    const modelPath = this._resolveModelPath(options.modelPath);
     const binaryPath = this._resolveBinaryPath(options.binaryPath);
-    const language = normalizeLanguage(options.language);
     const threads = Number.isFinite(Number(options.threads))
       ? Math.max(1, Math.floor(Number(options.threads)))
       : null;
@@ -576,20 +844,17 @@ class ParaformerManager {
       const tokensPath = path.join(modelPath, "tokens.txt");
 
       const args = [
-        "--paraformer", modelOnnxPath,
-        "--tokens", tokensPath,
-        "--num-threads", String(threads || 4),
+        `--paraformer=${modelOnnxPath}`,
+        `--tokens=${tokensPath}`,
+        `--num-threads=${String(threads || 4)}`,
+        "--decoding-method=greedy_search",
       ];
-      if (language && language !== "auto") {
-        args.push("--language", language);
-      }
       args.push(wavPath);
 
-      debugLogger.debug("Starting Paraformer CLI", {
+      debugLogger.debug("Starting Paraformer CLI (fallback)", {
         binaryPath,
         args,
         modelPath,
-        language,
       });
 
       const spawnEnv = { ...process.env };

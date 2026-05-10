@@ -716,6 +716,10 @@ if (gotSingleInstanceLock) {
     if (parakeetManager) {
       parakeetManager.stopServer().catch(() => { });
     }
+    // Stop paraformer WS server if running
+    if (paraformerManager) {
+      paraformerManager.stopServer().catch(() => { });
+    }
     // Stop llama-server if running
     const modelManager = require("./src/helpers/modelManagerBridge").default;
     modelManager.stopServer().catch(() => { });

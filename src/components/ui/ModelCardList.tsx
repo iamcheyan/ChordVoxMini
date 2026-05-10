@@ -15,6 +15,7 @@ export interface ModelCardOption {
   isDownloaded?: boolean;
   isDownloading?: boolean;
   recommended?: boolean;
+  modelPath?: string;
 }
 
 interface ModelCardListProps {
@@ -304,6 +305,14 @@ export default function ModelCardList({
                 )}
               </div>
             </div>
+
+            {isDownloaded && model.modelPath && (
+              <div className="px-2.5 pb-2 ml-3">
+                <div className="text-[10px] text-muted-foreground/40 font-mono truncate bg-muted/30 px-1.5 py-0.5 rounded-sm border border-border/20">
+                  {model.modelPath}
+                </div>
+              </div>
+            )}
           </div>
         );
       })}
