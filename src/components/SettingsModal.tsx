@@ -61,13 +61,6 @@ export default function SettingsModal({
         group: t("settingsModal.groups.intelligence"),
       },
       {
-        id: "agentConfig",
-        label: t("settingsModal.sections.agentConfig.label"),
-        icon: User,
-        description: t("settingsModal.sections.agentConfig.description"),
-        group: t("settingsModal.groups.intelligence"),
-      },
-      {
         id: "prompts",
         label: t("settingsModal.sections.prompts.label"),
         icon: Sparkles,

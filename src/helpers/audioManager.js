@@ -1125,10 +1125,9 @@ registerProcessor("pcm-streaming-processor", PCMStreamingProcessor);
     return new Blob([arrayBuffer], { type: "audio/wav" });
   }
 
-  async processWithReasoningModel(text, model, agentName) {
+  async processWithReasoningModel(text, model) {
     logger.logReasoning("CALLING_REASONING_SERVICE", {
       model,
-      agentName,
       textLength: text.length,
     });
 
@@ -1144,7 +1143,7 @@ registerProcessor("pcm-streaming-processor", PCMStreamingProcessor);
       });
 
       const result = await Promise.race([
-        ReasoningService.processText(text, model, agentName),
+        ReasoningService.processText(text, model),
         timeoutPromise,
       ]);
 
@@ -1257,10 +1256,6 @@ registerProcessor("pcm-streaming-processor", PCMStreamingProcessor);
       typeof window !== "undefined" && window.localStorage
         ? this.getStringSetting("reasoningProvider", "auto")
         : "auto";
-    const agentName =
-      typeof window !== "undefined" && window.localStorage
-        ? localStorage.getItem("agentName") || null
-        : null;
     if (!reasoningModel) {
       logger.logReasoning("REASONING_SKIPPED", {
         reason: "No reasoning model selected",
@@ -1277,7 +1272,6 @@ registerProcessor("pcm-streaming-processor", PCMStreamingProcessor);
       useReasoning,
       reasoningModel,
       reasoningProvider,
-      agentName,
     });
 
     if (useReasoning) {
@@ -1294,8 +1288,7 @@ registerProcessor("pcm-streaming-processor", PCMStreamingProcessor);
 
         const result = await this.processWithReasoningModel(
           normalizedText,
-          reasoningModel,
-          agentName
+          reasoningModel
         );
 
         logger.logReasoning("REASONING_SUCCESS", {
@@ -2548,7 +2541,6 @@ registerProcessor("pcm-streaming-processor", PCMStreamingProcessor);
     const useReasoningModel = this.getBooleanSetting("useReasoningModel", true);
     if (useReasoningModel && finalText) {
       const reasoningStart = performance.now();
-      const agentName = localStorage.getItem("agentName") || "";
       const cloudReasoningMode = this.getStringSetting("cloudReasoningMode", "byok");
       const reasoningModel = this.getStringSetting("reasoningModel", "");
       const reasoningProvider = this.getStringSetting("reasoningProvider", "auto");
@@ -2562,8 +2554,7 @@ registerProcessor("pcm-streaming-processor", PCMStreamingProcessor);
         if (reasoningModel) {
           const result = await this.processWithReasoningModel(
             finalText,
-            reasoningModel,
-            agentName
+            reasoningModel
           );
           if (result) {
             finalText = result;

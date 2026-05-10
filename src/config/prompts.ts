@@ -20,25 +20,12 @@ function getPromptBundle(uiLanguage?: string): PromptBundle {
   };
 }
 
-function detectAgentName(transcript: string, agentName: string): boolean {
-  const lower = transcript.toLowerCase();
-  const name = agentName.toLowerCase();
-
-  if (lower.includes(name)) return true;
-
-  const variants: string[] = [];
-
-  return variants.some((v) => lower.includes(v));
-}
-
 export function getSystemPrompt(
-  agentName: string | null,
   customDictionary?: string[],
   language?: string,
   transcript?: string,
   uiLanguage?: string
 ): string {
-  const name = agentName?.trim() || "Assistant";
   const prompts = getPromptBundle(uiLanguage);
 
   let promptTemplate: string | null = null;
@@ -55,13 +42,9 @@ export function getSystemPrompt(
 
   let prompt: string;
   if (promptTemplate) {
-    prompt = promptTemplate.replace(/\{\{agentName\}\}/g, name);
+    prompt = promptTemplate;
   } else {
-    const useFullPrompt = !transcript || detectAgentName(transcript, name);
-    prompt = (useFullPrompt ? prompts.fullPrompt : prompts.cleanupPrompt).replace(
-      /\{\{agentName\}\}/g,
-      name
-    );
+    prompt = prompts.cleanupPrompt;
   }
 
   const langInstruction = getLanguageInstruction(language);

@@ -3,7 +3,6 @@ import { useLocalStorage } from "./useLocalStorage";
 import { useDebouncedCallback } from "./useDebouncedCallback";
 import { API_ENDPOINTS } from "../config/constants";
 import logger from "../utils/logger";
-import { ensureAgentNameInDictionary } from "../utils/agentName";
 import i18n, { normalizeUiLanguage } from "../i18n";
 import type { LocalTranscriptionProvider } from "../types/electron";
 
@@ -393,10 +392,7 @@ function useSettingsInternal() {
       }
     };
 
-    syncDictionary().then(() => {
-      // Ensure agent name is in dictionary for existing users who set it before this feature
-      ensureAgentNameInDictionary();
-    });
+    syncDictionary();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

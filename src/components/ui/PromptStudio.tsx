@@ -15,7 +15,6 @@ import {
 } from "lucide-react";
 import { AlertDialog } from "./dialog";
 import { useDialogs } from "../../hooks/useDialogs";
-import { useAgentName } from "../../utils/agentName";
 import ReasoningService from "../../services/ReasoningService";
 import { getModelProvider } from "../../models/ModelRegistry";
 import logger from "../../utils/logger";
@@ -73,7 +72,6 @@ export default function PromptStudio({ className = "" }: PromptStudioProps) {
   const [copiedPrompt, setCopiedPrompt] = useState(false);
 
   const { alertDialog, showAlertDialog, hideAlertDialog } = useDialogs();
-  const { agentName } = useAgentName();
 
   useEffect(() => {
     const legacyPrompts = localStorage.getItem("customPrompts");
@@ -157,7 +155,6 @@ export default function PromptStudio({ className = "" }: PromptStudioProps) {
           reasoningModel,
           reasoningProvider,
           testTextLength: testText.length,
-          agentName,
         },
         "prompt-studio"
       );
@@ -198,7 +195,7 @@ export default function PromptStudio({ className = "" }: PromptStudioProps) {
       localStorage.setItem("customUnifiedPrompt", JSON.stringify(editedPrompt));
 
       try {
-        const result = await ReasoningService.processText(testText, modelToUse, agentName, {});
+        const result = await ReasoningService.processText(testText, modelToUse, {});
         setTestResult(result);
       } finally {
         if (currentCustomPrompt) {
@@ -216,7 +213,6 @@ export default function PromptStudio({ className = "" }: PromptStudioProps) {
     }
   };
 
-  const isAgentAddressed = testText.toLowerCase().includes(agentName.toLowerCase());
   const isCustomPrompt = getCurrentPrompt() !== UNIFIED_SYSTEM_PROMPT;
 
   const tabs = [
@@ -268,10 +264,6 @@ export default function PromptStudio({ className = "" }: PromptStudioProps) {
                     mode: t("promptStudio.view.modes.cleanup.label"),
                     desc: t("promptStudio.view.modes.cleanup.description"),
                   },
-                  {
-                    mode: t("promptStudio.view.modes.agent.label"),
-                    desc: t("promptStudio.view.modes.agent.description", { agentName }),
-                  },
                 ].map((item) => (
                   <div key={item.mode} className="flex items-start gap-3">
                     <span className="shrink-0 mt-0.5 text-[10px] font-medium uppercase tracking-wider px-1.5 py-px rounded bg-muted text-muted-foreground">
@@ -317,7 +309,7 @@ export default function PromptStudio({ className = "" }: PromptStudioProps) {
               </div>
               <div className="bg-muted/30 dark:bg-surface-raised/30 border border-border/30 rounded-lg p-4 max-h-80 overflow-y-auto">
                 <pre className="text-[11px] font-mono text-muted-foreground whitespace-pre-wrap leading-relaxed">
-                  {getCurrentPrompt().replace(/\{\{agentName\}\}/g, agentName)}
+                  {getCurrentPrompt()}
                 </pre>
               </div>
             </div>
@@ -332,11 +324,7 @@ export default function PromptStudio({ className = "" }: PromptStudioProps) {
                 <span className="font-medium text-warning">
                   {t("promptStudio.edit.cautionLabel")}
                 </span>{" "}
-                {t("promptStudio.edit.cautionTextPrefix")}{" "}
-                <code className="text-[11px] bg-muted/50 px-1 py-0.5 rounded font-mono">
-                  {"{{agentName}}"}
-                </code>{" "}
-                {t("promptStudio.edit.cautionTextSuffix")}
+                {t("promptStudio.edit.cautionTextPrefix")}
               </p>
             </div>
 
@@ -348,10 +336,6 @@ export default function PromptStudio({ className = "" }: PromptStudioProps) {
                 className="font-mono text-[11px] leading-relaxed"
                 placeholder={t("promptStudio.edit.placeholder")}
               />
-              <p className="text-[11px] text-muted-foreground/50 mt-2">
-                {t("promptStudio.edit.agentNameLabel")}{" "}
-                <span className="font-medium text-foreground">{agentName}</span>
-              </p>
             </div>
 
             <div className="px-5 py-4">
@@ -433,16 +417,8 @@ export default function PromptStudio({ className = "" }: PromptStudioProps) {
                       {t("promptStudio.test.inputLabel")}
                     </p>
                     {testText && (
-                      <span
-                        className={`text-[10px] font-medium uppercase tracking-wider px-1.5 py-px rounded ${
-                          isAgentAddressed
-                            ? "bg-primary/10 text-primary dark:bg-primary/15"
-                            : "bg-muted text-muted-foreground"
-                        }`}
-                      >
-                        {isAgentAddressed
-                          ? t("promptStudio.test.instruction")
-                          : t("promptStudio.test.cleanup")}
+                      <span className="text-[10px] font-medium uppercase tracking-wider px-1.5 py-px rounded bg-muted text-muted-foreground">
+                        {t("promptStudio.test.cleanup")}
                       </span>
                     )}
                   </div>
@@ -453,9 +429,6 @@ export default function PromptStudio({ className = "" }: PromptStudioProps) {
                     className="text-[12px]"
                     placeholder={t("promptStudio.test.inputPlaceholder")}
                   />
-                  <p className="text-[10px] text-muted-foreground/40 mt-1.5">
-                    {t("promptStudio.test.addressHint", { agentName })}
-                  </p>
                 </div>
 
                 <div className="px-5 py-4">

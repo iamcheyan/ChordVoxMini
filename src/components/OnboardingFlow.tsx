@@ -25,7 +25,6 @@ import { usePermissions } from "../hooks/usePermissions";
 import { useClipboard } from "../hooks/useClipboard";
 import { useSettings } from "../hooks/useSettings";
 import LanguageSelector from "./ui/LanguageSelector";
-import { setAgentName as saveAgentName } from "../utils/agentName";
 import { formatHotkeyLabel, getDefaultHotkey } from "../utils/hotkeys";
 import { HotkeyInput } from "./ui/HotkeyInput";
 import HotkeyGuidanceAccordion from "./ui/HotkeyGuidanceAccordion";
@@ -91,7 +90,6 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   } = useSettings();
 
   const [hotkey, setHotkey] = useState(dictationKey || getDefaultHotkey());
-  const [agentName, setAgentName] = useState("ChordVox");
   const [isModelDownloaded, setIsModelDownloaded] = useState(false);
   const [isUsingGnomeHotkeys, setIsUsingGnomeHotkeys] = useState(false);
   const readableHotkey = formatHotkeyLabel(hotkey);
@@ -267,7 +265,6 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
       return false;
     }
     setDictationKey(hotkey);
-    saveAgentName(agentName);
 
     localStorage.setItem("onboardingCompleted", "true");
 
@@ -278,7 +275,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
     }
 
     return true;
-  }, [hotkey, agentName, setDictationKey, ensureHotkeyRegistered]);
+  }, [hotkey, setDictationKey, ensureHotkeyRegistered]);
 
   const nextStep = useCallback(async () => {
     if (currentStep >= steps.length - 1) {

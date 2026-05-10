@@ -31,10 +31,10 @@ export abstract class BaseReasoningService {
     return window.localStorage.getItem("uiLanguage") || "en";
   }
 
-  protected getSystemPrompt(agentName: string | null, transcript?: string): string {
+  protected getSystemPrompt(transcript?: string): string {
     const language = this.getPreferredLanguage();
     const uiLanguage = this.getUiLanguage();
-    return getSystemPrompt(agentName, this.getCustomDictionary(), language, transcript, uiLanguage);
+    return getSystemPrompt(this.getCustomDictionary(), language, transcript, uiLanguage);
   }
 
   protected calculateMaxTokens(
@@ -51,7 +51,6 @@ export abstract class BaseReasoningService {
   abstract processText(
     text: string,
     modelId: string,
-    agentName?: string | null,
     config?: ReasoningConfig
   ): Promise<string>;
 }

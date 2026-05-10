@@ -27,7 +27,6 @@ import { ConfirmDialog, AlertDialog } from "./ui/dialog";
 import { Alert, AlertTitle, AlertDescription } from "./ui/alert";
 import { useSettings } from "../hooks/useSettings";
 import { useDialogs } from "../hooks/useDialogs";
-import { useAgentName } from "../utils/agentName";
 import { useWhisper } from "../hooks/useWhisper";
 import { usePermissions } from "../hooks/usePermissions";
 import { useClipboard } from "../hooks/useClipboard";
@@ -60,7 +59,6 @@ export type SettingsSectionType =
   | "transcription"
   | "dictionary"
   | "aiModels"
-  | "agentConfig"
   | "prompts"
   | "permissions"
   | "privacy"
@@ -543,8 +541,6 @@ export default function SettingsPage({
   const whisperHook = useWhisper();
   const permissionsHook = usePermissions(showAlertDialog);
   useClipboard(showAlertDialog);
-  const { agentName, setAgentName } = useAgentName();
-  const [agentNameInput, setAgentNameInput] = useState(agentName);
   const { theme, setTheme } = useTheme();
 
   const installTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -696,10 +692,9 @@ export default function SettingsPage({
 
   const handleRemoveDictionaryWord = useCallback(
     (wordToRemove: string) => {
-      if (wordToRemove === agentName) return;
       setCustomDictionary(customDictionary.filter((word) => word !== wordToRemove));
     },
-    [customDictionary, setCustomDictionary, agentName]
+    [customDictionary, setCustomDictionary]
   );
 
   const [autoStartEnabled, setAutoStartEnabled] = useState(false);
@@ -1724,8 +1719,7 @@ export default function SettingsPage({
                         description: t("settingsPage.dictionary.clearDictionaryDescription"),
                         confirmText: t("settingsPage.dictionary.clearAll"),
                         variant: "destructive",
-                        onConfirm: () =>
-                          setCustomDictionary(customDictionary.filter((w) => w === agentName)),
+                        onConfirm: () => setCustomDictionary([]),
                       });
                     }}
                     className="text-[10px] text-muted-foreground/40 hover:text-destructive transition-colors"
@@ -1739,44 +1733,31 @@ export default function SettingsPage({
                 <SettingsPanel>
                   <SettingsPanelRow>
                     <div className="flex flex-wrap gap-1">
-                      {customDictionary.map((word) => {
-                        const isAgentName = word === agentName;
-                        return (
-                          <span
-                            key={word}
-                            className={`group inline-flex items-center gap-0.5 py-0.5 rounded-[5px] text-[11px] border transition-all ${isAgentName
-                                ? "pl-2 pr-2 bg-primary/10 dark:bg-primary/15 text-primary border-primary/20 dark:border-primary/30"
-                                : "pl-2 pr-1 bg-primary/5 dark:bg-primary/10 text-foreground border-border/30 dark:border-border-subtle hover:border-destructive/40 hover:bg-destructive/5"
-                              }`}
-                            title={
-                              isAgentName
-                                ? t("settingsPage.dictionary.agentNameAutoManaged")
-                                : undefined
-                            }
+                      {customDictionary.map((word) => (
+                        <span
+                          key={word}
+                          className="group inline-flex items-center gap-0.5 py-0.5 rounded-[5px] text-[11px] border transition-all pl-2 pr-1 bg-primary/5 dark:bg-primary/10 text-foreground border-border/30 dark:border-border-subtle hover:border-destructive/40 hover:bg-destructive/5"
+                        >
+                          {word}
+                          <button
+                            onClick={() => handleRemoveDictionaryWord(word)}
+                            className="ml-0.5 p-0.5 rounded-sm text-muted-foreground/40 hover:text-destructive transition-colors"
+                            title={t("settingsPage.dictionary.removeWord")}
                           >
-                            {word}
-                            {!isAgentName && (
-                              <button
-                                onClick={() => handleRemoveDictionaryWord(word)}
-                                className="ml-0.5 p-0.5 rounded-sm text-muted-foreground/40 hover:text-destructive transition-colors"
-                                title={t("settingsPage.dictionary.removeWord")}
-                              >
-                                <svg
-                                  width="9"
-                                  height="9"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="2.5"
-                                  strokeLinecap="round"
-                                >
-                                  <path d="M18 6L6 18M6 6l12 12" />
-                                </svg>
-                              </button>
-                            )}
-                          </span>
-                        );
-                      })}
+                            <svg
+                              width="9"
+                              height="9"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2.5"
+                              strokeLinecap="round"
+                            >
+                              <path d="M18 6L6 18M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </span>
+                      ))}
                     </div>
                   </SettingsPanelRow>
                 </SettingsPanel>
@@ -1847,111 +1828,6 @@ export default function SettingsPage({
           />
         );
 
-      case "agentConfig":
-        return (
-          <div className="space-y-5">
-            <SectionHeader
-              title={t("settingsPage.agentConfig.title")}
-              description={t("settingsPage.agentConfig.description")}
-            />
-
-            {/* Agent Name */}
-            <div>
-              <p className="text-[13px] font-medium text-foreground mb-3">
-                {t("settingsPage.agentConfig.agentName")}
-              </p>
-              <SettingsPanel>
-                <SettingsPanelRow>
-                  <div className="space-y-3">
-                    <div className="flex gap-2">
-                      <Input
-                        placeholder={t("settingsPage.agentConfig.placeholder")}
-                        value={agentNameInput}
-                        onChange={(e) => setAgentNameInput(e.target.value)}
-                        className="flex-1 text-center text-base font-mono"
-                      />
-                      <Button
-                        onClick={() => {
-                          const trimmed = agentNameInput.trim();
-                          setAgentName(trimmed);
-                          setAgentNameInput(trimmed);
-                          showAlertDialog({
-                            title: t("settingsPage.agentConfig.dialogs.updatedTitle"),
-                            description: t("settingsPage.agentConfig.dialogs.updatedDescription", {
-                              name: trimmed,
-                            }),
-                          });
-                        }}
-                        disabled={!agentNameInput.trim()}
-                        size="sm"
-                      >
-                        {t("settingsPage.agentConfig.save")}
-                      </Button>
-                    </div>
-                    <p className="text-[11px] text-muted-foreground/60">
-                      {t("settingsPage.agentConfig.helper")}
-                    </p>
-                  </div>
-                </SettingsPanelRow>
-              </SettingsPanel>
-            </div>
-
-            {/* How it works */}
-            <div>
-              <SectionHeader title={t("settingsPage.agentConfig.howItWorksTitle")} />
-              <SettingsPanel>
-                <SettingsPanelRow>
-                  <p className="text-[12px] text-muted-foreground leading-relaxed">
-                    {t("settingsPage.agentConfig.howItWorksDescription", { agentName })}
-                  </p>
-                </SettingsPanelRow>
-              </SettingsPanel>
-            </div>
-
-            {/* Examples */}
-            <div>
-              <SectionHeader title={t("settingsPage.agentConfig.examplesTitle")} />
-              <SettingsPanel>
-                <SettingsPanelRow>
-                  <div className="space-y-2.5">
-                    {[
-                      {
-                        input: `Hi ${agentName}, write a formal email about the budget`,
-                        mode: t("settingsPage.agentConfig.instructionMode"),
-                      },
-                      {
-                        input: `Hi ${agentName}, make this more professional`,
-                        mode: t("settingsPage.agentConfig.instructionMode"),
-                      },
-                      {
-                        input: `Hi ${agentName}, convert this to bullet points`,
-                        mode: t("settingsPage.agentConfig.instructionMode"),
-                      },
-                      {
-                        input: t("settingsPage.agentConfig.cleanupExample"),
-                        mode: t("settingsPage.agentConfig.cleanupMode"),
-                      },
-                    ].map((example, i) => (
-                      <div key={i} className="flex items-start gap-3">
-                        <span
-                          className={`shrink-0 mt-0.5 text-[10px] font-medium uppercase tracking-wider px-1.5 py-px rounded ${example.mode === t("settingsPage.agentConfig.instructionMode")
-                              ? "bg-primary/10 text-primary dark:bg-primary/15"
-                              : "bg-muted text-muted-foreground"
-                            }`}
-                        >
-                          {example.mode}
-                        </span>
-                        <p className="text-[12px] text-muted-foreground leading-relaxed">
-                          "{example.input}"
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </SettingsPanelRow>
-              </SettingsPanel>
-            </div>
-          </div>
-        );
 
       case "prompts":
         return (

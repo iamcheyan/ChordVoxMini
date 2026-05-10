@@ -327,11 +327,10 @@ class ReasoningService extends BaseReasoningService {
     apiKey: string,
     model: string,
     text: string,
-    agentName: string | null,
     config: ReasoningConfig,
     providerName: string
   ): Promise<string> {
-    const systemPrompt = this.getSystemPrompt(agentName, text);
+    const systemPrompt = this.getSystemPrompt(text);
     const userPrompt = text;
 
     const messages = [
@@ -466,7 +465,6 @@ class ReasoningService extends BaseReasoningService {
   async processText(
     text: string,
     model: string = "",
-    agentName: string | null = null,
     config: ReasoningConfig = {}
   ): Promise<string> {
     const trimmedModel = model?.trim?.() || "";
@@ -478,7 +476,6 @@ class ReasoningService extends BaseReasoningService {
     logger.logReasoning("PROVIDER_SELECTION", {
       model: trimmedModel,
       provider,
-      agentName,
       hasConfig: Object.keys(config).length > 0,
       textLength: text.length,
       timestamp: new Date().toISOString(),
@@ -496,22 +493,22 @@ class ReasoningService extends BaseReasoningService {
       switch (provider) {
         case "openai":
         case "openrouter":
-          result = await this.processWithOpenAI(text, trimmedModel, agentName, config);
+          result = await this.processWithOpenAI(text, trimmedModel, config);
           break;
         case "anthropic":
-          result = await this.processWithAnthropic(text, trimmedModel, agentName, config);
+          result = await this.processWithAnthropic(text, trimmedModel, config);
           break;
         case "local":
-          result = await this.processWithLocal(text, trimmedModel, agentName, config);
+          result = await this.processWithLocal(text, trimmedModel, config);
           break;
         case "gemini":
-          result = await this.processWithGemini(text, trimmedModel, agentName, config);
+          result = await this.processWithGemini(text, trimmedModel, config);
           break;
         case "groq":
-          result = await this.processWithGroq(text, model, agentName, config);
+          result = await this.processWithGroq(text, model, config);
           break;
         case "bedrock":
-          result = await this.processWithBedrock(text, trimmedModel, agentName, config);
+          result = await this.processWithBedrock(text, trimmedModel, config);
           break;
         default:
           throw new Error(`Unsupported reasoning provider: ${provider}`);
@@ -542,7 +539,6 @@ class ReasoningService extends BaseReasoningService {
   private async processWithOpenAI(
     text: string,
     model: string,
-    agentName: string | null = null,
     config: ReasoningConfig = {}
   ): Promise<string> {
     const reasoningProvider = window.localStorage?.getItem("reasoningProvider") || "";
@@ -555,7 +551,6 @@ class ReasoningService extends BaseReasoningService {
 
     logger.logReasoning("OPENAI_START", {
       model,
-      agentName,
       provider: effectiveProvider,
       isCustomProvider,
       hasApiKey: false, // Will update after fetching
@@ -575,7 +570,7 @@ class ReasoningService extends BaseReasoningService {
     this.isProcessing = true;
 
     try {
-      const systemPrompt = this.getSystemPrompt(agentName, text);
+      const systemPrompt = this.getSystemPrompt(text);
       const userPrompt = text;
 
       const messages = [
@@ -774,12 +769,10 @@ class ReasoningService extends BaseReasoningService {
   private async processWithAnthropic(
     text: string,
     model: string,
-    agentName: string | null = null,
     config: ReasoningConfig = {}
   ): Promise<string> {
     logger.logReasoning("ANTHROPIC_START", {
       model,
-      agentName,
       environment: typeof window !== "undefined" ? "browser" : "node",
     });
 
@@ -791,8 +784,8 @@ class ReasoningService extends BaseReasoningService {
         textLength: text.length,
       });
 
-      const systemPrompt = this.getSystemPrompt(agentName, text);
-      const result = await window.electronAPI.processAnthropicReasoning(text, model, agentName, {
+      const systemPrompt = this.getSystemPrompt(text);
+      const result = await window.electronAPI.processAnthropicReasoning(text, model, {
         ...config,
         systemPrompt,
       });
@@ -825,12 +818,10 @@ class ReasoningService extends BaseReasoningService {
   private async processWithLocal(
     text: string,
     model: string,
-    agentName: string | null = null,
     config: ReasoningConfig = {}
   ): Promise<string> {
     logger.logReasoning("LOCAL_START", {
       model,
-      agentName,
       environment: typeof window !== "undefined" ? "browser" : "node",
     });
 
@@ -842,8 +833,8 @@ class ReasoningService extends BaseReasoningService {
         textLength: text.length,
       });
 
-      const systemPrompt = this.getSystemPrompt(agentName, text);
-      const result = await window.electronAPI.processLocalReasoning(text, model, agentName, {
+      const systemPrompt = this.getSystemPrompt(text);
+      const result = await window.electronAPI.processLocalReasoning(text, model, {
         ...config,
         systemPrompt,
       });
@@ -876,12 +867,10 @@ class ReasoningService extends BaseReasoningService {
   private async processWithGemini(
     text: string,
     model: string,
-    agentName: string | null = null,
     config: ReasoningConfig = {}
   ): Promise<string> {
     logger.logReasoning("GEMINI_START", {
       model,
-      agentName,
       hasApiKey: false,
     });
 
@@ -899,7 +888,7 @@ class ReasoningService extends BaseReasoningService {
     this.isProcessing = true;
 
     try {
-      const systemPrompt = this.getSystemPrompt(agentName, text);
+      const systemPrompt = this.getSystemPrompt(text);
       const userPrompt = text;
 
       const requestBody = {
@@ -1059,10 +1048,9 @@ class ReasoningService extends BaseReasoningService {
   private async processWithGroq(
     text: string,
     model: string,
-    agentName: string | null = null,
     config: ReasoningConfig = {}
   ): Promise<string> {
-    logger.logReasoning("GROQ_START", { model, agentName });
+    logger.logReasoning("GROQ_START", { model });
 
     if (this.isProcessing) {
       throw new Error("Already processing a request");
@@ -1079,7 +1067,6 @@ class ReasoningService extends BaseReasoningService {
         apiKey,
         model,
         text,
-        agentName,
         config,
         "Groq"
       );
@@ -1098,10 +1085,9 @@ class ReasoningService extends BaseReasoningService {
   private async processWithBedrock(
     text: string,
     model: string,
-    agentName: string | null = null,
     config: ReasoningConfig = {}
   ): Promise<string> {
-    logger.logReasoning("BEDROCK_START", { model, agentName });
+    logger.logReasoning("BEDROCK_START", { model });
 
     if (this.isProcessing) {
       throw new Error("Already processing a request");
@@ -1119,7 +1105,7 @@ class ReasoningService extends BaseReasoningService {
     this.isProcessing = true;
 
     try {
-      const systemPrompt = this.getSystemPrompt(agentName, text);
+      const systemPrompt = this.getSystemPrompt(text);
       const userPrompt = text;
 
       const bedrockBase = this.getProviderEndpointOverride("bedrock") ||

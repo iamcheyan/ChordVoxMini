@@ -1508,7 +1508,7 @@ class IPCHandlers {
     });
 
     // Local reasoning handler
-    ipcMain.handle("process-local-reasoning", async (event, text, modelId, _agentName, config) => {
+    ipcMain.handle("process-local-reasoning", async (event, text, modelId, config) => {
       const licenseGate = await this.checkLicenseGate();
       if (!licenseGate.allowed) {
         return this.buildLicenseDeniedResponse(licenseGate.status);
@@ -1526,7 +1526,7 @@ class IPCHandlers {
     // Anthropic reasoning handler
     ipcMain.handle(
       "process-anthropic-reasoning",
-      async (event, text, modelId, _agentName, config) => {
+      async (event, text, modelId, config) => {
         const licenseGate = await this.checkLicenseGate();
         if (!licenseGate.allowed) {
           return this.buildLicenseDeniedResponse(licenseGate.status);
