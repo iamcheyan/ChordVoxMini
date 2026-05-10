@@ -18,7 +18,7 @@ import { useDialogs } from "../../hooks/useDialogs";
 import ReasoningService from "../../services/ReasoningService";
 import { getModelProvider } from "../../models/ModelRegistry";
 import logger from "../../utils/logger";
-import { UNIFIED_SYSTEM_PROMPT } from "../../config/prompts";
+import { UNIFIED_SYSTEM_PROMPT, getSystemPrompt } from "../../config/prompts";
 
 interface PromptStudioProps {
   className?: string;
@@ -63,11 +63,12 @@ function getCurrentPrompt(): string {
 }
 
 export default function PromptStudio({ className = "" }: PromptStudioProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [activeTab, setActiveTab] = useState<"current" | "edit" | "test">("current");
   const [editedPrompt, setEditedPrompt] = useState(UNIFIED_SYSTEM_PROMPT);
   const [testText, setTestText] = useState(() => t("promptStudio.defaultTestInput"));
   const [testResult, setTestResult] = useState("");
+  const [testSystemPrompt, setTestSystemPrompt] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [copiedPrompt, setCopiedPrompt] = useState(false);
 
@@ -195,6 +196,13 @@ export default function PromptStudio({ className = "" }: PromptStudioProps) {
       localStorage.setItem("customUnifiedPrompt", JSON.stringify(editedPrompt));
 
       try {
+        // Capture the actual system prompt that will be sent (with language + dictionary)
+        const lang = i18n.language || "en";
+        const dictRaw = localStorage.getItem("customDictionary");
+        const dict = dictRaw ? (() => { try { const p = JSON.parse(dictRaw); return Array.isArray(p) ? p : []; } catch { return []; } })() : [];
+        const effectivePrompt = getSystemPrompt(dict, lang, testText, lang);
+        setTestSystemPrompt(effectivePrompt);
+
         const result = await ReasoningService.processText(testText, modelToUse, {});
         setTestResult(result);
       } finally {
@@ -312,6 +320,38 @@ export default function PromptStudio({ className = "" }: PromptStudioProps) {
                   {getCurrentPrompt()}
                 </pre>
               </div>
+            </div>
+
+            {/* ── Dynamic prompt preview ── */}
+            <div className="px-5 py-4 border-t border-border/40 dark:border-border-subtle">
+              <div className="flex items-center gap-2 mb-3">
+                <p className="text-[11px] font-medium text-muted-foreground/60 uppercase tracking-wider">
+                  动态生成 Prompt（含语言指令）
+                </p>
+              </div>
+              {(() => {
+                try {
+                  const lang = i18n.language || "en";
+                  const dictRaw = localStorage.getItem("customDictionary");
+                  const dict = dictRaw ? (() => { try { const p = JSON.parse(dictRaw); return Array.isArray(p) ? p : []; } catch { return []; } })() : [];
+                  const dynamicPrompt = getSystemPrompt(dict, lang, undefined, lang);
+                  return (
+                    <div className="space-y-2">
+                      <div className="bg-muted/30 dark:bg-surface-raised/30 border border-border/30 rounded-lg p-4 max-h-48 overflow-y-auto">
+                        <pre className="text-[11px] font-mono text-muted-foreground whitespace-pre-wrap leading-relaxed">
+                          {dynamicPrompt}
+                        </pre>
+                      </div>
+                      <div className="flex gap-4 text-[10px] text-muted-foreground">
+                        <span>语言: {lang}</span>
+                        <span>词典条目: {dict.length}</span>
+                      </div>
+                    </div>
+                  );
+                } catch (e) {
+                  return <p className="text-[11px] text-destructive">加载失败: {String(e)}</p>;
+                }
+              })()}
             </div>
           </div>
         )}
@@ -443,8 +483,31 @@ export default function PromptStudio({ className = "" }: PromptStudioProps) {
                   </Button>
                 </div>
 
+                {testSystemPrompt && (
+                  <div className="px-5 py-4 border-t border-border/40 dark:border-border-subtle">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-[11px] font-medium text-muted-foreground/60 uppercase tracking-wider">
+                        System Prompt（实际发送给 AI 的完整提示词）
+                      </p>
+                      <Button
+                        onClick={() => copyText(testSystemPrompt)}
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 px-1.5"
+                      >
+                        <Copy className="w-3 h-3 text-muted-foreground" />
+                      </Button>
+                    </div>
+                    <div className="bg-muted/30 dark:bg-surface-raised/30 border border-border/30 rounded-lg p-4 max-h-32 overflow-y-auto">
+                      <pre className="text-[10px] font-mono text-muted-foreground whitespace-pre-wrap leading-relaxed">
+                        {testSystemPrompt}
+                      </pre>
+                    </div>
+                  </div>
+                )}
+
                 {testResult && (
-                  <div className="px-5 py-4">
+                  <div className="px-5 py-4 border-t border-border/40 dark:border-border-subtle">
                     <div className="flex items-center justify-between mb-2">
                       <p className="text-[12px] font-medium text-foreground">
                         {t("promptStudio.test.outputLabel")}

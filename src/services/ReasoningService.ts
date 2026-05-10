@@ -333,6 +333,19 @@ class ReasoningService extends BaseReasoningService {
     const systemPrompt = this.getSystemPrompt(text);
     const userPrompt = text;
 
+    logger.logReasoning("CHAT_COMPLETIONS_SYSTEM_PROMPT", {
+      model,
+      provider: providerName,
+      systemPrompt,
+      systemPromptLength: systemPrompt.length,
+    });
+    logger.logReasoning("CHAT_COMPLETIONS_USER_PROMPT", {
+      model,
+      provider: providerName,
+      userPrompt,
+      userPromptLength: userPrompt.length,
+    });
+
     const messages = [
       { role: "system", content: systemPrompt },
       { role: "user", content: userPrompt },
@@ -452,6 +465,11 @@ class ReasoningService extends BaseReasoningService {
       throw new Error(`${providerName} returned empty response`);
     }
 
+    logger.logReasoning(`${providerName.toUpperCase()}_RESPONSE_FULL`, {
+      model,
+      responseText,
+      responseLength: responseText.length,
+    });
     logger.logReasoning(`${providerName.toUpperCase()}_RESPONSE`, {
       model,
       responseLength: responseText.length,
@@ -572,6 +590,17 @@ class ReasoningService extends BaseReasoningService {
     try {
       const systemPrompt = this.getSystemPrompt(text);
       const userPrompt = text;
+
+      logger.logReasoning("OPENAI_SYSTEM_PROMPT", {
+        model,
+        systemPrompt,
+        systemPromptLength: systemPrompt.length,
+      });
+      logger.logReasoning("OPENAI_USER_PROMPT", {
+        model,
+        userPrompt,
+        userPromptLength: userPrompt.length,
+      });
 
       const messages = [
         { role: "system", content: systemPrompt },
@@ -736,6 +765,11 @@ class ReasoningService extends BaseReasoningService {
         }
       }
 
+      logger.logReasoning("OPENAI_RESPONSE_FULL", {
+        model,
+        responseText,
+        responseLength: responseText.length,
+      });
       logger.logReasoning("OPENAI_RESPONSE", {
         model,
         responseLength: responseText.length,
@@ -785,6 +819,17 @@ class ReasoningService extends BaseReasoningService {
       });
 
       const systemPrompt = this.getSystemPrompt(text);
+      logger.logReasoning("ANTHROPIC_SYSTEM_PROMPT", {
+        model,
+        systemPrompt,
+        systemPromptLength: systemPrompt.length,
+      });
+      logger.logReasoning("ANTHROPIC_USER_PROMPT", {
+        model,
+        userPrompt: text,
+        userPromptLength: text.length,
+      });
+
       const result = await window.electronAPI.processAnthropicReasoning(text, model, {
         ...config,
         systemPrompt,
@@ -793,6 +838,11 @@ class ReasoningService extends BaseReasoningService {
       const processingTime = Date.now() - startTime;
 
       if (result.success) {
+        logger.logReasoning("ANTHROPIC_RESPONSE_FULL", {
+          model,
+          responseText: result.text,
+          responseLength: result.text.length,
+        });
         logger.logReasoning("ANTHROPIC_SUCCESS", {
           model,
           processingTimeMs: processingTime,
@@ -890,6 +940,17 @@ class ReasoningService extends BaseReasoningService {
     try {
       const systemPrompt = this.getSystemPrompt(text);
       const userPrompt = text;
+
+      logger.logReasoning("GEMINI_SYSTEM_PROMPT", {
+        model,
+        systemPrompt,
+        systemPromptLength: systemPrompt.length,
+      });
+      logger.logReasoning("GEMINI_USER_PROMPT", {
+        model,
+        userPrompt,
+        userPromptLength: userPrompt.length,
+      });
 
       const requestBody = {
         contents: [
@@ -1025,6 +1086,11 @@ class ReasoningService extends BaseReasoningService {
 
       const responseText = candidate.content.parts[0].text.trim();
 
+      logger.logReasoning("GEMINI_RESPONSE_FULL", {
+        model,
+        responseText,
+        responseLength: responseText.length,
+      });
       logger.logReasoning("GEMINI_RESPONSE", {
         model,
         responseLength: responseText.length,
@@ -1107,6 +1173,17 @@ class ReasoningService extends BaseReasoningService {
     try {
       const systemPrompt = this.getSystemPrompt(text);
       const userPrompt = text;
+
+      logger.logReasoning("BEDROCK_SYSTEM_PROMPT", {
+        model,
+        systemPrompt,
+        systemPromptLength: systemPrompt.length,
+      });
+      logger.logReasoning("BEDROCK_USER_PROMPT", {
+        model,
+        userPrompt,
+        userPromptLength: userPrompt.length,
+      });
 
       const bedrockBase = this.getProviderEndpointOverride("bedrock") ||
         `https://bedrock-runtime.${region}.amazonaws.com`;
@@ -1195,6 +1272,12 @@ class ReasoningService extends BaseReasoningService {
       }
 
       responseText = responseText.trim();
+
+      logger.logReasoning("BEDROCK_RESPONSE_FULL", {
+        model,
+        responseText,
+        responseLength: responseText.length,
+      });
 
       logger.logReasoning("BEDROCK_RESPONSE", {
         model,

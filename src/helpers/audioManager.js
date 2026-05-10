@@ -1142,12 +1142,24 @@ registerProcessor("pcm-streaming-processor", PCMStreamingProcessor);
         );
       });
 
+      logger.logReasoning("REASONING_INPUT_FULL", {
+        model,
+        inputText: text,
+        inputLength: text.length,
+      });
+
       const result = await Promise.race([
         ReasoningService.processText(text, model),
         timeoutPromise,
       ]);
 
       const processingTime = Date.now() - startTime;
+
+      logger.logReasoning("REASONING_OUTPUT_FULL", {
+        model,
+        outputText: result,
+        outputLength: result.length,
+      });
 
       logger.logReasoning("REASONING_SERVICE_COMPLETE", {
         model,
