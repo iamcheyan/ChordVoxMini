@@ -749,6 +749,69 @@ class IPCHandlers {
       return this.paraformerManager.cancelBinaryDownload();
     });
 
+    // Translation model handlers
+    ipcMain.handle("download-translation-model", async (event, modelName) => {
+      try {
+        const TranslationManager = require("./translationManager");
+        const manager = new TranslationManager();
+        const result = await manager.downloadModel(modelName, (progressData) => {
+          if (!event.sender.isDestroyed()) {
+            event.sender.send("translation-download-progress", progressData);
+          }
+        });
+        return result;
+      } catch (error) {
+        if (!event.sender.isDestroyed()) {
+          event.sender.send("translation-download-progress", {
+            type: "error",
+            model: modelName,
+            error: error.message,
+          });
+        }
+        return { success: false, error: error.message };
+      }
+    });
+
+    ipcMain.handle("check-translation-model", async (_event, modelName) => {
+      const TranslationManager = require("./translationManager");
+      const manager = new TranslationManager();
+      return { downloaded: manager.isModelDownloaded(modelName) };
+    });
+
+    ipcMain.handle("delete-translation-model", async (_event, modelName) => {
+      const TranslationManager = require("./translationManager");
+      const manager = new TranslationManager();
+      return await manager.deleteModel(modelName);
+    });
+
+    ipcMain.handle("translate-text", async (_event, text, sourceLang, targetLang) => {
+      const translationInference = require("./translationInference");
+      const TranslationManager = require("./translationManager");
+      const manager = new TranslationManager();
+
+      const models = manager.getModelsByDirection(sourceLang, targetLang);
+      if (!models.length) {
+        return { success: false, error: `No translation model found for ${sourceLang} → ${targetLang}` };
+      }
+
+      const modelName = models[0];
+      if (!manager.isModelDownloaded(modelName)) {
+        return { success: false, error: `Translation model not downloaded: ${modelName}` };
+      }
+
+      try {
+        const result = await translationInference.translate(text, modelName);
+        return { success: true, text: result };
+      } catch (error) {
+        return { success: false, error: error.message };
+      }
+    });
+
+    ipcMain.handle("list-translation-models", async () => {
+      const modelRegistryData = require("../models/modelRegistryData.json");
+      return modelRegistryData.translationModels || {};
+    });
+
     ipcMain.handle("pick-models-directory", async (event, defaultPath = "") => {
       try {
         const targetWindow = BrowserWindow.fromWebContents(event.sender);
@@ -1003,6 +1066,10 @@ class IPCHandlers {
 
     ipcMain.handle("update-secondary-hotkey", async (event, hotkey) => {
       return await this.windowManager.updateSecondaryHotkey(hotkey);
+    });
+
+    ipcMain.handle("update-tertiary-hotkey", async (event, hotkey) => {
+      return await this.windowManager.updateTertiaryHotkey(hotkey);
     });
 
     ipcMain.handle("set-hotkey-listening-mode", async (event, enabled, newHotkey = null) => {
@@ -1363,19 +1430,28 @@ class IPCHandlers {
       return this.environmentManager.getDictationKey();
     });
 
-    ipcMain.handle("save-dictation-key", async (event, key) => {
+    ipcMain.handle("save-dictation-key", async (_event, key) => {
       return this.environmentManager.saveDictationKey(key);
     });
 
-    ipcMain.handle("get-local-models-dir", async () => {
-      return process.env.LOCAL_MODELS_DIR || "";
+    ipcMain.handle("get-hf-mirror-url", async () => {
+      return this.environmentManager.getHfMirrorUrl();
     });
 
-    ipcMain.handle("save-local-models-dir", async (_event, path) => {
-      process.env.LOCAL_MODELS_DIR = path;
+    ipcMain.handle("save-hf-mirror-url", async (_event, url) => {
+      return this.environmentManager.saveHfMirrorUrl(url);
+    });
+
+    ipcMain.handle("get-local-models-dir", async () => {
+      return this.environmentManager.getLocalModelsDir();
+    });
+
+    ipcMain.handle("save-local-models-dir", async (_event, dir) => {
+      const result = this.environmentManager.saveLocalModelsDir(dir);
       const modelManager = require("./modelManagerBridge").default;
       modelManager.refreshConfig();
-      return this.environmentManager.saveAllKeysToEnvFile();
+      await this.environmentManager.saveAllKeysToEnvFile();
+      return result;
     });
 
     ipcMain.handle("get-activation-mode", async () => {

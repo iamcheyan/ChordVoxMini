@@ -157,7 +157,7 @@ export default function LanguageSelector({
           group relative w-full flex items-center justify-between gap-2
           h-7 px-2.5 text-left
           rounded text-xs font-medium
-          border shadow-sm backdrop-blur-sm
+          border backdrop-blur-sm
           transition-all duration-200 ease-out
           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:ring-offset-1
           ${
@@ -244,7 +244,7 @@ export default function LanguageSelector({
                           rounded transition-all duration-150 ease-out
                           ${
                             isSelected
-                              ? "bg-primary/15 text-primary shadow-sm"
+                              ? "bg-primary/15 text-primary"
                               : isHighlighted
                                 ? "bg-muted/70 text-foreground"
                                 : "text-foreground hover:bg-muted/50 active:scale-[0.98]"

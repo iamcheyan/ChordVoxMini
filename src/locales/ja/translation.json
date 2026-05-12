@@ -836,7 +836,7 @@
         "label": "辞書"
       },
       "general": {
-        "description": "外観・ホットキー・起動設定",
+        "description": "外観・起動設定",
         "label": "環境設定"
       },
       "permissions": {
@@ -851,9 +851,17 @@
         "description": "システムプロンプトスタジオ",
         "label": "プロンプト"
       },
+      "shortcuts": {
+        "description": "聽寫快捷鍵與觸發方式",
+        "label": "ショートカット"
+      },
       "transcription": {
         "description": "音声テキスト変換エンジン",
         "label": "文字起こし"
+      },
+      "translation": {
+        "description": "オフライン言語翻訳",
+        "label": "翻訳"
       }
     },
     "title": "設定"
@@ -1037,6 +1045,18 @@
         "versionPlaceholder": "—",
         "whatsNew": "v{{version}} の新機能"
       }
+    },
+    "translation": {
+      "title": "ホットキー 3（翻訳）",
+      "description": "ONNX モデルを使用したオフライン翻訳。ある言語で話すと、翻訳されたテキストが得られます。",
+      "hotkeyLabel": "翻訳ホットキー",
+      "languagePair": "翻訳方向",
+      "download": "ダウンロード",
+      "delete": "削除",
+      "downloadComplete": "ダウンロード完了",
+      "downloadFailed": "ダウンロード失敗",
+      "modelDeleted": "モデルを削除しました",
+      "deleteFailed": "削除失敗"
     },
     "permissions": {
       "accessibilityDescription": "文字起こし後の自動貼り付けに必要",

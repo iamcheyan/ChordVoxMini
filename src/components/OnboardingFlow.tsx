@@ -641,7 +641,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
       <div className="shrink-0 z-10">
         <TitleBar
           showTitle={true}
-          className="bg-background backdrop-blur-xl border-b border-border shadow-sm"
+          className="bg-background backdrop-blur-xl border-b border-border"
           actions={undefined}
         ></TitleBar>
       </div>

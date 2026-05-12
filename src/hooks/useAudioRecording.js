@@ -20,7 +20,11 @@ export const useAudioRecording = (toast, options = {}) => {
   const successFeedbackTimerRef = useRef(null);
   const { onToggle } = options;
   const resolveProfileId = useCallback(
-    (payload) => (payload?.profileId === "secondary" ? "secondary" : "primary"),
+    (payload) => {
+      if (payload?.profileId === "secondary") return "secondary";
+      if (payload?.profileId === "tertiary") return "tertiary";
+      return "primary";
+    },
     []
   );
   const clearSuccessFeedback = useCallback(() => {

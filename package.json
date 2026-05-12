@@ -107,6 +107,7 @@
     "i18next": "^25.8.4",
     "lucide-react": "^0.518.0",
     "object-assign": "^4.1.1",
+    "onnxruntime-node": "^1.26.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-i18next": "^15.7.4",

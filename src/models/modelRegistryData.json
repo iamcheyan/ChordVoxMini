@@ -647,5 +647,87 @@
         }
       ]
     }
-  ]
+  ],
+  "translationModels": {
+    "opus-mt-zh-en": {
+      "name": "OPUS-MT Chinese → English",
+      "description": "MarianMT model for Chinese to English translation",
+      "sizeMb": 107,
+      "sourceLang": "zh",
+      "targetLang": "en",
+      "repoId": "Xenova/opus-mt-zh-en",
+      "files": {
+        "encoder": "onnx/encoder_model.onnx",
+        "decoder": "onnx/decoder_model_merged_int8.onnx",
+        "sourceSpm": "source.spm",
+        "targetSpm": "target.spm",
+        "tokenizer": "tokenizer.json",
+        "config": "config.json"
+      }
+    },
+    "opus-mt-zh-ja": {
+      "name": "OPUS-MT Chinese → Japanese",
+      "description": "MarianMT model for Chinese to Japanese translation",
+      "sizeMb": 268,
+      "sourceLang": "zh",
+      "targetLang": "ja",
+      "repoId": "Xenova/opus-mt-zh-ja",
+      "files": {
+        "encoder": "encoder_model.onnx",
+        "decoder": "decoder_model.onnx",
+        "sourceSpm": "source.spm",
+        "targetSpm": "target.spm",
+        "tokenizer": "vocab.json",
+        "config": "config.json"
+      }
+    },
+    "opus-mt-en-zh": {
+      "name": "OPUS-MT English → Chinese",
+      "description": "MarianMT model for English to Chinese translation",
+      "sizeMb": 107,
+      "sourceLang": "en",
+      "targetLang": "zh",
+      "repoId": "Xenova/opus-mt-en-zh",
+      "files": {
+        "encoder": "onnx/encoder_model.onnx",
+        "decoder": "onnx/decoder_model_merged_int8.onnx",
+        "sourceSpm": "source.spm",
+        "targetSpm": "target.spm",
+        "tokenizer": "tokenizer.json",
+        "config": "config.json"
+      }
+    },
+    "opus-mt-ja-en": {
+      "name": "OPUS-MT Japanese → English",
+      "description": "MarianMT model for Japanese to English translation",
+      "sizeMb": 103,
+      "sourceLang": "ja",
+      "targetLang": "en",
+      "repoId": "Xenova/opus-mt-ja-en",
+      "files": {
+        "encoder": "onnx/encoder_model.onnx",
+        "decoder": "onnx/decoder_model_merged_int8.onnx",
+        "sourceSpm": "source.spm",
+        "targetSpm": "target.spm",
+        "tokenizer": "tokenizer.json",
+        "config": "config.json"
+      }
+    },
+    "opus-mt-en-jap": {
+      "name": "OPUS-MT English → Japanese",
+      "description": "MarianMT model for English to Japanese translation",
+      "sizeMb": 89,
+      "sourceLang": "en",
+      "targetLang": "ja",
+      "repoId": "Xenova/opus-mt-en-jap",
+      "files": {
+        "encoder": "onnx/encoder_model.onnx",
+        "decoder": "onnx/decoder_model_merged_int8.onnx",
+        "sourceSpm": "source.spm",
+        "targetSpm": "target.spm",
+        "tokenizer": "tokenizer.json",
+        "config": "config.json"
+      }
+    }
+  }
 }

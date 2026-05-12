@@ -1,144 +1,123 @@
 @import "tailwindcss";
 
 @theme {
-  /* ChordVox Theme — registers color tokens with Tailwind v4.
-     These are the light-mode defaults; .dark overrides them below. */
-  --color-primary: #2563eb;
+  /* ChordVox Theme — Minimalist Japanese (Zen) Aesthetic */
+  
+  /* Shared Base Tokens */
+  --font-family-sans: "Inter", "Noto Sans JP", "Noto Sans SC", "PingFang SC", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Microsoft YaHei", sans-serif;
+  --radius: 0.25rem; /* 4px - very minimal */
+  --radius-sm: 0.125rem; /* 2px */
+  --radius-md: 0.25rem;
+  --radius-lg: 0.375rem;
+  --radius-xl: 0.5rem;
+
+  /* Light Mode - Washi / Paper */
+  --color-primary: #2d2d2d; /* Charcoal */
   --color-primary-foreground: #ffffff;
-  --color-secondary: #f5f5f5;
-  --color-secondary-foreground: #171717;
-  --color-muted: #f5f5f5;
-  --color-muted-foreground: #737373;
-  --color-accent: oklch(0.55 0.22 285);
+  --color-secondary: #f4f1ea; /* Light Washi Paper */
+  --color-secondary-foreground: #2d2d2d;
+  --color-muted: #f0f0f0;
+  --color-muted-foreground: #757575;
+  --color-accent: #8c7b6c; /* Muted Sand */
   --color-accent-foreground: #ffffff;
-  --color-destructive: #dc2626;
+  --color-destructive: #a63d40; /* Traditional Red */
   --color-destructive-foreground: #ffffff;
-  --color-border: #e5e5e5;
-  --color-input: #f9f6f1;
-  --color-ring: #2563eb;
-  --color-background: #ffffff;
-  --color-foreground: #171717;
+  --color-border: #e0e0e0;
+  --color-input: #ffffff;
+  --color-ring: #2d2d2d;
+  --color-background: #fcfcfc;
+  --color-foreground: #2d2d2d;
   --color-card: #ffffff;
-  --color-card-foreground: #171717;
+  --color-card-foreground: #2d2d2d;
   --color-popover: #ffffff;
-  --color-popover-foreground: #171717;
-  --color-link: #2563eb;
-  --color-success: #16a34a;
+  --color-popover-foreground: #2d2d2d;
+  --color-link: #3d5a80;
+  --color-success: #4a7c59; /* Forest Green */
   --color-success-foreground: #ffffff;
-  --color-warning: #d97706;
+  --color-warning: #c2943e;
   --color-warning-foreground: #ffffff;
-  --color-info: #2563eb;
+  --color-info: #506d84;
   --color-info-foreground: #ffffff;
 
-  /* Surface hierarchy — light mode equivalents */
-  --color-surface-0: #ffffff;
-  --color-surface-1: #fafafa;
-  --color-surface-2: #ffffff;
+  /* Surface hierarchy — Light */
+  --color-surface-0: #fcfcfc;
+  --color-surface-1: #ffffff;
+  --color-surface-2: #fcfcfc;
   --color-surface-3: #f5f5f5;
-  --color-surface-raised: #f0f0f0;
+  --color-surface-raised: #ffffff;
 
-  /* Border states — light mode equivalents */
-  --color-border-subtle: #e5e5e5;
-  --color-border-hover: #d4d4d4;
-  --color-border-active: #2563eb;
+  /* Border states — Light */
+  --color-border-subtle: #eeeeee;
+  --color-border-hover: #cccccc;
+  --color-border-active: #2d2d2d;
 }
 
 :root {
-  /* Typography */
-  --font-family-sans:
-    "Noto Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,
-    sans-serif;
-
-  /* Opacities */
   --opacity-subtle: 0.1;
   --opacity-medium: 0.5;
   --opacity-high: 0.9;
 
-  /* Border Radius — ultra-tight, premium macOS-style rounding */
-  --radius: 0.375rem; /* 6px - default for buttons, inputs */
-  --radius-sm: 0.25rem; /* 4px - minimal rounding */
-  --radius-md: 0.375rem; /* 6px - standard */
-  --radius-lg: 0.5rem; /* 8px - cards, panels */
-  --radius-xl: 0.5rem; /* 8px - large cards (reduced from 10px) */
-
-  /* Custom Light Mode Brand Colors (Parchment Theme) */
-  --color-parchment-bg: #f9f6f1;
-  --color-parchment-border: #ddd4c7;
-  --color-parchment-text: #2b1f14;
-  --color-parchment-accent: #c0a77d;
-  --color-brand-primary: #2b1f14;
-  --color-brand-accent: #4b2e2b;
-  --color-brand-highlight: #c0a77d;
-  --color-brand-link: #2e3659;
-  --color-pattern: #e7e5e4;
-
-  /* Model picker premium effects (light mode) */
-  --shadow-metallic-light: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 1px 3px rgba(0, 0, 0, 0.08);
-  --shadow-card-hover-subtle: 0 2px 8px -2px rgba(0, 0, 0, 0.1);
+  /* Shadows — Removed for Flat Aesthetic */
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: none;
+  
+  --shadow-card: none;
+  --shadow-card-hover: none;
 }
 
 .dark {
-  /* Dark mode — clear surface hierarchy: bg < muted < card < popover */
-  --color-background: oklch(0.1 0.005 270);
-  --color-foreground: oklch(0.95 0 0);
-  --color-card: oklch(0.15 0.008 270);
-  --color-card-foreground: oklch(0.95 0 0);
-  --color-popover: oklch(0.17 0.008 270);
-  --color-popover-foreground: oklch(0.95 0 0);
-  --color-primary: oklch(0.62 0.22 260);
-  --color-primary-foreground: oklch(0.99 0 0);
-  --color-secondary: oklch(0.18 0.005 270);
-  --color-secondary-foreground: oklch(0.92 0 0);
-  --color-muted: oklch(0.13 0.005 270);
-  --color-muted-foreground: oklch(0.55 0 0);
-  --color-accent: oklch(0.68 0.2 285);
-  --color-accent-foreground: oklch(0.99 0 0);
-  --color-destructive: oklch(0.6 0.25 25);
-  --color-destructive-foreground: oklch(0.99 0 0);
-  --color-border: oklch(0.23 0.005 270);
-  --color-input: oklch(0.12 0.005 270);
-  --color-ring: oklch(0.62 0.22 260);
-  --color-success: oklch(0.7 0.18 145);
-  --color-success-foreground: oklch(0.99 0 0);
-  --color-warning: oklch(0.75 0.15 70);
-  --color-warning-foreground: oklch(0.15 0 0);
-  --color-info: oklch(0.68 0.2 240);
-  --color-info-foreground: oklch(0.99 0 0);
+  /* Dark Mode - Sumi (Ink) */
+  --color-background: #1a1a1a;
+  --color-foreground: #e0e0e0;
+  --color-card: #242424;
+  --color-card-foreground: #e0e0e0;
+  --color-popover: #2a2a2a;
+  --color-popover-foreground: #e0e0e0;
+  --color-primary: #d4d4d4;
+  --color-primary-foreground: #1a1a1a;
+  --color-secondary: #2d2d2d;
+  --color-secondary-foreground: #d4d4d4;
+  --color-muted: #2a2a2a;
+  --color-muted-foreground: #888888;
+  --color-accent: #a6917c;
+  --color-accent-foreground: #1a1a1a;
+  --color-destructive: #c44548;
+  --color-destructive-foreground: #ffffff;
+  --color-border: #333333;
+  --color-input: #222222;
+  --color-ring: #d4d4d4;
+  --color-success: #5a8f6a;
+  --color-success-foreground: #ffffff;
+  --color-warning: #d4a04d;
+  --color-warning-foreground: #1a1a1a;
+  --color-info: #6b8ea6;
+  --color-info-foreground: #ffffff;
 
-  /* Surface hierarchy — layered depth system */
-  --color-surface-0: oklch(0.1 0.005 270);
-  --color-surface-1: oklch(0.13 0.006 270);
-  --color-surface-2: oklch(0.155 0.008 270);
-  --color-surface-3: oklch(0.18 0.01 270);
-  --color-surface-raised: oklch(0.2 0.012 270);
+  /* Surface hierarchy — Dark */
+  --color-surface-0: #1a1a1a;
+  --color-surface-1: #222222;
+  --color-surface-2: #242424;
+  --color-surface-3: #2a2a2a;
+  --color-surface-raised: #333333;
 
-  /* Border states */
-  --color-border-subtle: oklch(0.2 0.004 270);
-  --color-border-hover: oklch(0.28 0.01 270);
-  --color-border-active: oklch(0.45 0.15 260);
-  --color-link: oklch(0.64 0.09 250);
+  /* Border states — Dark */
+  --color-border-subtle: #2a2a2a;
+  --color-border-hover: #444444;
+  --color-border-active: #d4d4d4;
+  --color-link: #88aadd;
 
-  /* Card depth shadows — no glow, clean depth only */
-  --shadow-card: 0 1px 2px oklch(0 0 0 / 0.25);
-  --shadow-card-hover: 0 2px 8px oklch(0 0 0 / 0.35);
-  --shadow-elevated: 0 8px 24px oklch(0 0 0 / 0.4);
-  --shadow-modal: 0 24px 48px -12px oklch(0 0 0 / 0.5);
-
-  /* Model picker premium effects */
-  --shadow-metallic-dark: inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 2px 8px rgba(0, 0, 0, 0.3);
-  --shadow-selected-glow:
-    inset 0 0 0 1px oklch(0.62 0.22 260 / 0.15), 0 0 16px -4px oklch(0.62 0.22 260 / 0.25);
-  --shadow-card-hover-subtle: 0 2px 8px -2px rgba(0, 0, 0, 0.15);
+  /* Shadows — Dark (Removed) */
+  --shadow-card: none;
+  --shadow-card-hover: none;
+  --shadow-elevated: none;
+  --shadow-modal: none;
 }
 
 @layer base {
   * {
     border-color: var(--color-border);
-    transition:
-      background-color 150ms ease,
-      border-color 150ms ease,
-      color 150ms ease,
-      box-shadow 150ms ease;
+    transition: none !important; /* Minimalist apps often feel crisper without transitions */
   }
 
   body {
@@ -147,19 +126,13 @@
     margin: 0;
     padding: 0;
     font-family: var(--font-family-sans);
-    font-feature-settings:
-      "liga" 1,
-      "kern" 1;
-    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    letter-spacing: 0.01em;
+    line-height: 1.6; /* Balanced for CJK */
   }
 
   /* Electron specific styles */
-  html,
-  body {
-    min-height: 100vh;
-  }
-
-  #root {
+  html, body, #root {
     min-height: 100vh;
   }
 
@@ -173,324 +146,81 @@
   }
 }
 
-/* ChordVox Brand Typography */
-.brand-heading {
-  font-family: var(--font-family-sans);
-  font-weight: 600;
-  letter-spacing: -0.02em;
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  line-height: 1.5;
 }
 
-.brand-body {
-  font-family: var(--font-family-sans);
-  line-height: 1.6;
-}
+h1 { font-size: 2rem; }
+h2 { font-size: 1.5rem; }
+h3 { font-size: 1.25rem; }
 
-.brand-script {
-  font-family: var(--font-family-sans);
-  font-style: italic;
-}
-
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-family: var(--font-family-sans);
-  font-weight: 600;
-  letter-spacing: -0.025em;
-  line-height: 1.15;
-}
-
-h1 {
-  font-size: 2.5rem;
-  font-weight: 700;
-}
-
-/* Modern Button Styling - handled by button component */
-button {
-  font-family: var(--font-family-sans);
+/* Interactive Elements */
+button, [role="button"], .cursor-pointer {
   cursor: pointer;
 }
 
-/* Ensure all interactive elements have pointer cursor */
-button:hover,
-[role="button"]:hover,
-.cursor-pointer:hover,
-svg:hover,
-[data-icon]:hover,
-.icon:hover {
-  cursor: pointer;
+/* Minimalist Utility Classes */
+.glass {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
 }
 
-/* Premium input styling with subtle depth */
-input,
-textarea {
-  border-radius: var(--radius);
-  transition: all 0.2s ease;
-  font-family: var(--font-family-sans);
-  box-shadow: inset 0 1px 2px oklch(from var(--color-foreground) l c h / 0.06);
+.glass-darker {
+  background: var(--color-surface-1);
+  border: 1px solid var(--color-border);
 }
 
-/* Light mode inputs - embossed parchment */
-:root input,
-:root textarea {
-  background-color: var(--color-parchment-bg);
-  border: 1px solid var(--color-parchment-border);
-  color: var(--color-parchment-text);
-}
-
-:root input:focus,
-:root textarea:focus {
-  border-color: var(--color-parchment-accent);
-  box-shadow:
-    0 0 0 2px oklch(from var(--color-parchment-accent) l c h / 0.2),
-    inset 0 1px 3px oklch(from var(--color-parchment-text) l c h / var(--opacity-subtle));
-  background-color: var(--color-background);
-}
-
-/* Dark mode inputs — flat, no embossed shadow */
-.dark input,
-.dark textarea {
+/* Premium Input Styling */
+input, textarea {
+  border-radius: var(--radius-sm);
   background-color: var(--color-input);
   border: 1px solid var(--color-border);
   color: var(--color-foreground);
-  box-shadow: none;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.875rem;
 }
 
-.dark input:focus,
-.dark textarea:focus {
-  border-color: var(--color-border-active);
-  box-shadow: 0 0 0 2px oklch(from var(--color-ring) l c h / 0.15);
+input:focus, textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: none; /* Removed glow */
 }
 
-/* Card styling - elevated parchment */
+/* Card Styling */
 .card {
   background-color: var(--color-card);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-card, 0 1px 3px oklch(from var(--color-foreground) l c h / 0.08));
-  transition: all 0.2s ease;
-}
-
-.card:hover {
-  box-shadow: var(--shadow-card-hover, 0 4px 12px oklch(from var(--color-foreground) l c h / 0.1));
-  transform: translateY(-1px);
-}
-
-/* Dark mode cards — grounded, no lift, subtle border glow */
-.dark .card {
-  border-color: var(--color-border-subtle);
+  border-radius: var(--radius-sm);
   box-shadow: var(--shadow-card);
 }
 
-.dark .card:hover {
-  box-shadow: var(--shadow-card-hover);
-  transform: none;
+.card:hover {
   border-color: var(--color-border-hover);
 }
 
-/* Link styling */
-a {
-  color: var(--color-link);
-  text-decoration: none;
-  transition: color 0.2s ease;
-  cursor: pointer;
+/* Animations - Subtle */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-a:hover {
-  color: var(--color-link);
-  opacity: 0.8;
-  cursor: pointer;
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out forwards;
 }
 
-/* Status indicators */
+/* Status Indicators */
 .status-active {
-  color: var(--color-brand-accent);
-  font-weight: 600;
+  color: var(--color-primary);
+  font-weight: 500;
 }
 
-.text-brand-primary {
-  color: var(--color-brand-primary);
-}
-
-.text-brand-accent {
-  color: var(--color-brand-accent);
-}
-
-.text-brand-highlight {
-  color: var(--color-brand-highlight);
-}
-
-.text-brand-link {
-  color: var(--color-brand-link);
-}
-
-/* ---- Premium UI Utilities ---- */
-
-/* Section panel — grouped settings container */
-.section-panel {
-  background: var(--color-surface-2);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-xl);
-}
-
-/* Gradient accent bar — top border highlight for panels */
-.accent-bar {
-  position: relative;
-}
-
-.dark .accent-bar::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(
-    90deg,
-    oklch(0.62 0.22 260 / 0.5),
-    oklch(0.7 0.18 280 / 0.3),
-    transparent 80%
-  );
-  pointer-events: none;
-  z-index: 1;
-}
-
-/* Monochrome icon theming - explicit light/dark handling */
-.icon-monochrome {
-  filter: none;
-  transition: filter 150ms ease;
-}
-
-.dark .icon-monochrome {
-  filter: invert(1);
-}
-
-/* Toast — opaque dark HUD surface, same in light & dark mode */
-.toast-surface {
-  background: oklch(0.13 0.005 270);
-  border: 1px solid oklch(0.22 0.005 270);
-  box-shadow:
-    inset 0 1px 0 oklch(1 0 0 / 0.04),
-    0 8px 24px -4px oklch(0 0 0 / 0.5),
-    0 2px 8px -2px oklch(0 0 0 / 0.3);
-}
-
-@keyframes toast-progress {
-  from {
-    width: 100%;
-  }
-  to {
-    width: 0%;
-  }
-}
-
-/* Model picker LED pulse animation */
-@keyframes pulse-glow {
-  0%,
-  100% {
-    box-shadow: 0 0 6px oklch(0.62 0.22 260 / 0.4);
-    opacity: 0.8;
-  }
-  50% {
-    box-shadow: 0 0 8px oklch(0.62 0.22 260 / 0.6);
-    opacity: 1;
-  }
-}
-
-/* Spinner rotation for downloading state */
-@keyframes spinner-rotate {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* Scale-in animation for completion */
-@keyframes scale-in {
-  from {
-    transform: scale(0.8);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-/* Floating mic success feedback */
-@keyframes mic-success-pop {
-  0% {
-    transform: scale(0.72) rotate(-8deg);
-    opacity: 0;
-  }
-  65% {
-    transform: scale(1.08) rotate(0deg);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-@keyframes mic-success-glow {
-  0% {
-    box-shadow:
-      0 0 0 oklch(0.72 0.22 285 / 0),
-      0 0 0 oklch(0.82 0.2 315 / 0);
-  }
-  45% {
-    box-shadow:
-      0 0 16px oklch(0.72 0.22 285 / 0.55),
-      0 0 28px oklch(0.82 0.2 315 / 0.4);
-  }
-  100% {
-    box-shadow:
-      0 0 8px oklch(0.72 0.22 285 / 0.32),
-      0 0 18px oklch(0.82 0.2 315 / 0.2);
-  }
-}
-
-@keyframes mic-success-ring {
-  0% {
-    transform: scale(0.92);
-    opacity: 0.9;
-  }
-  100% {
-    transform: scale(1.18);
-    opacity: 0;
-  }
-}
-
-.mic-success-shell {
-  animation: mic-success-glow 1.2s ease-out both;
-}
-
-.mic-success-icon {
-  animation: mic-success-pop 220ms cubic-bezier(0.2, 0.85, 0.3, 1.1) both;
-}
-
-.mic-success-ring {
-  animation: mic-success-ring 1.2s ease-out both;
-}
-
-/* Indeterminate progress bar sweep */
-@keyframes indeterminate {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(300%);
-  }
-}
-
+/* Custom Scrollbar - Minimalist */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 4px;
+  height: 4px;
 }
 
 ::-webkit-scrollbar-track {
@@ -498,18 +228,18 @@ a:hover {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: transparent;
-  border-radius: 3px;
-}
-
-:hover::-webkit-scrollbar-thumb {
   background: var(--color-border);
 }
 
-:hover::-webkit-scrollbar-thumb:hover {
-  background: var(--color-border-hover);
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-muted-foreground);
 }
 
-::-webkit-scrollbar-corner {
-  background: transparent;
+/* Toast Surface */
+.toast-surface {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-lg);
 }
+
+

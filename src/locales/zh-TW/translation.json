@@ -836,7 +836,7 @@
         "label": "字典"
       },
       "general": {
-        "description": "外觀、快捷鍵與啟動",
+        "description": "外觀與啟動",
         "label": "偏好設定"
       },
       "permissions": {
@@ -850,6 +850,10 @@
       "prompts": {
         "description": "系統提示詞工作室",
         "label": "提示詞"
+      },
+      "shortcuts": {
+        "description": "聽寫快捷鍵與觸發方式",
+        "label": "快捷鍵"
       },
       "transcription": {
         "description": "語音轉文字引擎",

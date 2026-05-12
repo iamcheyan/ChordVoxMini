@@ -836,7 +836,7 @@
         "label": "Dizionario"
       },
       "general": {
-        "description": "Aspetto, scorciatoia e avvio",
+        "description": "Aspetto e avvio",
         "label": "Preferenze"
       },
       "permissions": {
@@ -850,6 +850,10 @@
       "prompts": {
         "description": "Studio del prompt di sistema",
         "label": "Prompt"
+      },
+      "shortcuts": {
+        "description": "Tasto rapido dettatura e attivazione",
+        "label": "Scorciatoie"
       },
       "transcription": {
         "description": "Motore di riconoscimento vocale",

@@ -43,15 +43,15 @@ export default function TranscriptionItem({
 
   return (
     <div
-      className="group relative px-3 py-2.5 transition-colors duration-150 hover:bg-muted/30 dark:hover:bg-white/2"
+      className="group relative px-4 py-3 border-b border-border last:border-b-0 hover:bg-secondary transition-none"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <div className="flex items-start gap-3">
-        {/* Number badge - compact pill */}
-        <div className="flex-shrink-0 mt-0.5">
-          <span className="inline-flex items-center justify-center min-w-[28px] h-5 px-1.5 rounded-sm bg-primary/10 dark:bg-primary/15 text-primary text-[10px] font-semibold tabular-nums">
-            {total - index}
+        {/* Number badge - simple text */}
+        <div className="flex-shrink-0 mt-1">
+          <span className="text-muted-foreground text-[11px] font-mono">
+            {(total - index).toString().padStart(2, "0")}
           </span>
         </div>
 
@@ -93,10 +93,9 @@ export default function TranscriptionItem({
           </div>
         </div>
 
-        {/* Actions - fade in on hover */}
         <div
           className={cn(
-            "flex items-center gap-0.5 flex-shrink-0 transition-opacity duration-150",
+            "flex items-center gap-1 flex-shrink-0",
             isHovered ? "opacity-100" : "opacity-0"
           )}
         >
@@ -104,17 +103,17 @@ export default function TranscriptionItem({
             size="icon"
             variant="ghost"
             onClick={() => onCopy(item.text)}
-            className="h-6 w-6 rounded-sm text-muted-foreground hover:text-foreground hover:bg-foreground/10"
+            className="h-7 w-7 rounded-sm text-muted-foreground hover:text-foreground hover:bg-black/5"
           >
-            <Copy size={12} />
+            <Copy size={13} />
           </Button>
           <Button
             size="icon"
             variant="ghost"
             onClick={() => onDelete(item.id)}
-            className="h-6 w-6 rounded-sm text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+            className="h-7 w-7 rounded-sm text-muted-foreground hover:text-destructive hover:bg-destructive/10"
           >
-            <Trash2 size={12} />
+            <Trash2 size={13} />
           </Button>
         </div>
       </div>

@@ -441,7 +441,12 @@ class WhisperManager {
     this.currentDownloadProcess = { abort };
 
     try {
-      await downloadFile(modelConfig.url, modelPath, {
+      const mirrorUrl = process.env.HF_MIRROR_URL || "https://huggingface.co";
+      const finalUrl = modelConfig.url.startsWith("https://huggingface.co")
+        ? modelConfig.url.replace("https://huggingface.co", mirrorUrl)
+        : modelConfig.url;
+
+      await downloadFile(finalUrl, modelPath, {
         timeout: 600000,
         signal,
         expectedSize: modelConfig.size,

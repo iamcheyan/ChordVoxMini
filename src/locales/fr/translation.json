@@ -836,7 +836,7 @@
         "label": "Dictionnaire"
       },
       "general": {
-        "description": "Apparence, raccourci et démarrage",
+        "description": "Apparence et démarrage",
         "label": "Préférences"
       },
       "permissions": {
@@ -850,6 +850,10 @@
       "prompts": {
         "description": "Studio de prompts système",
         "label": "Prompts"
+      },
+      "shortcuts": {
+        "description": "Raccourci de dictée et activation",
+        "label": "Raccourcis"
       },
       "transcription": {
         "description": "Moteur de reconnaissance vocale",

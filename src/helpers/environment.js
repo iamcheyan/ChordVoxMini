@@ -31,6 +31,7 @@ const PERSISTED_KEYS = [
   "LOCAL_MODELS_DIR",
   "PARAFORMER_MODEL_PATH",
   "PARAFORMER_BINARY_PATH",
+  "HF_MIRROR_URL",
 ];
 
 class EnvironmentManager {
@@ -210,6 +211,27 @@ class EnvironmentManager {
     const result = this._saveKey("UI_LANGUAGE", normalized);
     this.saveAllKeysToEnvFile().catch(() => { });
     return { ...result, language: normalized };
+  }
+
+  getHfMirrorUrl() {
+    return this._getKey("HF_MIRROR_URL");
+  }
+
+  saveHfMirrorUrl(url) {
+    const normalized = String(url || "").trim().replace(/\/+$/, "");
+    const result = this._saveKey("HF_MIRROR_URL", normalized);
+    this.saveAllKeysToEnvFile().catch(() => { });
+    return { ...result, value: normalized };
+  }
+
+  getLocalModelsDir() {
+    return this._getKey("LOCAL_MODELS_DIR");
+  }
+
+  saveLocalModelsDir(dir) {
+    const result = this._saveKey("LOCAL_MODELS_DIR", dir);
+    this.saveAllKeysToEnvFile().catch(() => { });
+    return result;
   }
 
   async createProductionEnvFile(apiKey) {

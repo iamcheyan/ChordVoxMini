@@ -836,7 +836,7 @@
         "label": "Wörterbuch"
       },
       "general": {
-        "description": "Darstellung, Hotkey & Start",
+        "description": "Darstellung & Start",
         "label": "Einstellungen"
       },
       "permissions": {
@@ -850,6 +850,10 @@
       "prompts": {
         "description": "System-Prompt-Studio",
         "label": "Prompts"
+      },
+      "shortcuts": {
+        "description": "Diktierhotkey & Aktivierung",
+        "label": "Tastenkürzel"
       },
       "transcription": {
         "description": "Sprache-zu-Text-Engine",

@@ -44,10 +44,8 @@ const SPECIAL_KEYS = new Set(
   [
     "GLOBE",
     "Fn",
-    "Esc",
     "Tab",
     "Space",
-    "Backspace",
     "Insert",
     "Delete",
     "Home",
@@ -580,7 +578,7 @@ export function validateHotkey(
     return {
       valid: false,
       error:
-        "Shortcuts must include a modifier or a non-alphanumeric key (like arrows, space, or function keys).",
+        "快捷键必须包含修饰键（如 Ctrl, Cmd）或功能键（如 F1-F12, 方向键）。不能直接使用单个字母、数字或退格键。",
       errorCode: "NO_MODIFIER_OR_SPECIAL",
     };
   }

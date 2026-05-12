@@ -836,7 +836,7 @@
         "label": "Diccionario"
       },
       "general": {
-        "description": "Apariencia, atajo e inicio",
+        "description": "Apariencia e inicio",
         "label": "Preferencias"
       },
       "permissions": {
@@ -850,6 +850,10 @@
       "prompts": {
         "description": "Estudio de prompts del sistema",
         "label": "Prompts"
+      },
+      "shortcuts": {
+        "description": "Tecla de dictado y activación",
+        "label": "Atajos"
       },
       "transcription": {
         "description": "Motor de voz a texto",

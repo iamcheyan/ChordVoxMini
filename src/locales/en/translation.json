@@ -871,7 +871,7 @@
         "label": "Dictionary"
       },
       "general": {
-        "description": "Appearance, hotkey & startup",
+        "description": "Appearance & startup",
         "label": "Preferences"
       },
       "permissions": {
@@ -886,9 +886,17 @@
         "description": "System prompt studio",
         "label": "Prompts"
       },
+      "shortcuts": {
+        "description": "Dictation hotkey & activation",
+        "label": "Shortcuts"
+      },
       "transcription": {
         "description": "Speech-to-text engine",
         "label": "Transcription"
+      },
+      "translation": {
+        "description": "Offline language translation",
+        "label": "Translation"
       }
     },
     "title": "Settings"
@@ -1051,6 +1059,18 @@
         "launchAtLoginDescription": "Start ChordVox automatically when you log in",
         "title": "Startup"
       }
+    },
+    "translation": {
+      "title": "Hotkey 3 (Translation)",
+      "description": "Offline translation using ONNX models. Speak in one language and get translated text.",
+      "hotkeyLabel": "Translation Hotkey",
+      "languagePair": "Translation Direction",
+      "download": "Download",
+      "delete": "Delete",
+      "downloadComplete": "Download Complete",
+      "downloadFailed": "Download Failed",
+      "modelDeleted": "Model Deleted",
+      "deleteFailed": "Delete Failed"
     },
     "permissions": {
       "accessibilityDescription": "Required for auto-paste to work after transcription",

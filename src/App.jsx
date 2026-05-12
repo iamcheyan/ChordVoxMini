@@ -55,12 +55,14 @@ const Tooltip = ({ children, content, emoji }) => {
       </div>
       {isVisible && (
         <div
-          className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-1 py-1 text-popover-foreground bg-popover border border-border rounded-md whitespace-nowrap z-10 transition-opacity duration-150 shadow-lg"
-          style={{ fontSize: "9.7px", maxWidth: "96px" }}
+          className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-foreground bg-card border border-border rounded z-10 transition-none animate-fade-in"
+          style={{ fontSize: "11px" }}
         >
-          {emoji && <span className="mr-1">{emoji}</span>}
-          {content}
-          <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-2 border-r-2 border-t-2 border-transparent border-t-popover"></div>
+          <div className="flex items-center justify-center gap-1.5">
+            {emoji && <span>{emoji}</span>}
+            <span className="font-medium">{content}</span>
+          </div>
+          <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[4px] border-r-[4px] border-t-[4px] border-transparent border-t-border"></div>
         </div>
       )}
     </div>
@@ -276,31 +278,27 @@ export default function App() {
       case "idle":
       case "hover":
         return {
-          className: `${baseClasses} bg-black/50 cursor-pointer`,
+          className: `${baseClasses} bg-background border-border hover:border-primary hover:bg-secondary transition-none`,
           tooltip: t("app.mic.hotkeyToSpeak", { hotkey }),
         };
       case "recording":
         return {
-          className: `${baseClasses} bg-primary cursor-pointer`,
+          className: `${baseClasses} bg-primary border-primary`,
           tooltip: t("app.mic.recording"),
         };
       case "processing":
         return {
-          className:
-            `${baseClasses} cursor-not-allowed border-white/80 ` +
-            "bg-[radial-gradient(circle_at_25%_20%,#8ec5ff_0%,#7f7cf8_30%,#8b5cf6_65%,#6d28d9_100%)]",
+          className: `${baseClasses} bg-accent border-accent`,
           tooltip: t("app.mic.processing"),
         };
       case "success":
         return {
-          className:
-            `${baseClasses} mic-success-shell border-white/80 ` +
-            "bg-[radial-gradient(circle_at_25%_20%,#8ec5ff_0%,#7f7cf8_30%,#c76eff_60%,#ff73c4_100%)]",
+          className: `${baseClasses} bg-success border-success`,
           tooltip: t("app.mic.clickToSpeak"),
         };
       default:
         return {
-          className: `${baseClasses} bg-black/50 cursor-pointer`,
+          className: `${baseClasses} bg-background border-border`,
           style: { transform: "scale(0.8)" },
           tooltip: t("app.mic.clickToSpeak"),
         };
@@ -335,7 +333,7 @@ export default function App() {
                 e.stopPropagation();
                 isRecording ? cancelRecording() : cancelProcessing();
               }}
-              className="group/cancel w-5 h-5 rounded-full bg-surface-2/90 hover:bg-destructive border border-border hover:border-destructive/70 flex items-center justify-center transition-all duration-150 shadow-sm backdrop-blur-sm"
+              className="group/cancel w-5 h-5 rounded-full bg-surface-2/90 hover:bg-destructive border border-border hover:border-destructive/70 flex items-center justify-center transition-all duration-150 backdrop-blur-sm"
             >
               <X
                 size={10}
@@ -418,29 +416,14 @@ export default function App() {
               ) : micState === "processing" ? (
                 <VoiceWaveIndicator isListening={true} />
               ) : micState === "success" ? (
-                <Check size={15} strokeWidth={3} className="text-white mic-success-icon" />
+                <Check size={15} strokeWidth={3} className="text-white" />
               ) : null}
-
-              {/* State indicator ring for recording */}
-              {micState === "recording" && (
-                <div className="absolute inset-0 rounded-full border-2 border-primary/50 animate-pulse"></div>
-              )}
-
-              {/* State indicator ring for processing */}
-              {micState === "processing" && (
-                <div className="absolute inset-0 rounded-full border-2 border-primary/30 opacity-50"></div>
-              )}
-
-              {/* State indicator ring for success */}
-              {micState === "success" && (
-                <div className="absolute inset-0 rounded-full border-2 border-white/70 mic-success-ring"></div>
-              )}
             </button>
           </Tooltip>
           {isCommandMenuOpen && (
             <div
               ref={commandMenuRef}
-              className="absolute bottom-full right-0 mb-3 w-48 rounded-lg border border-border bg-popover text-popover-foreground shadow-lg backdrop-blur-sm"
+              className="absolute bottom-full right-0 mb-3 w-40 bg-card border border-border rounded shadow-md overflow-hidden animate-fade-in"
               onMouseEnter={() => {
                 setWindowInteractivity(true);
               }}
@@ -450,27 +433,29 @@ export default function App() {
                 }
               }}
             >
-              <button
-                className="w-full px-3 py-2 text-left text-sm font-medium hover:bg-muted focus:bg-muted focus:outline-none"
-                onClick={() => {
-                  toggleListening();
-                }}
-              >
-                {isRecording
-                  ? t("app.commandMenu.stopListening")
-                  : t("app.commandMenu.startListening")}
-              </button>
-              <div className="h-px bg-border" />
-              <button
-                className="w-full px-3 py-2 text-left text-sm hover:bg-muted focus:bg-muted focus:outline-none"
-                onClick={() => {
-                  setIsCommandMenuOpen(false);
-                  setWindowInteractivity(false);
-                  handleClose();
-                }}
-              >
-                {t("app.commandMenu.hideForNow")}
-              </button>
+              <div className="p-0.5">
+                <button
+                  className="w-full px-3 py-1.5 text-left text-[12px] font-medium text-foreground hover:bg-secondary focus:outline-none"
+                  onClick={() => {
+                    toggleListening();
+                  }}
+                >
+                  {isRecording
+                    ? t("app.commandMenu.stopListening")
+                    : t("app.commandMenu.startListening")}
+                </button>
+                <div className="h-px bg-border/50 mx-2" />
+                <button
+                  className="w-full px-3 py-1.5 text-left text-[12px] text-muted-foreground hover:bg-secondary hover:text-foreground focus:outline-none"
+                  onClick={() => {
+                    setIsCommandMenuOpen(false);
+                    setWindowInteractivity(false);
+                    handleClose();
+                  }}
+                >
+                  {t("app.commandMenu.hideForNow")}
+                </button>
+              </div>
             </div>
           )}
         </div>

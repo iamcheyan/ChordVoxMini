@@ -510,6 +510,21 @@
       "description": "Debug 日志会持续写入磁盘，可能略微影响性能。不排查问题时请关闭。",
       "label": "注意"
     },
+    "hfMirror": {
+      "title": "下载镜像设置",
+      "description": "如果你在下载模型时遇到网络问题，可以尝试设置 HuggingFace 镜像地址（例如：https://hf-mirror.com）。",
+      "tip": "留空则恢复默认使用官方地址。此设置将影响翻译、Whisper 和 SenseVoice 模型的下载。",
+      "toasts": {
+        "saved": {
+          "title": "设置已保存",
+          "description": "下载镜像地址已更新"
+        },
+        "saveFailed": {
+          "title": "保存失败",
+          "description": "无法保存镜像地址"
+        }
+      }
+    },
     "trace": {
       "clear": "清空",
       "description": "查看每次快捷键触发后，转录/润色/粘贴是否成功以及具体错误。",
@@ -526,7 +541,7 @@
         "reasoning": "润色",
         "recording": "录音",
         "session": "会话",
-        "transcription": "转录"
+        "transcription": "语音转文字"
       },
       "refresh": "刷新",
       "runId": "运行ID",
@@ -860,7 +875,7 @@
       },
       "aiModels": {
         "description": "文本整理与增强",
-        "label": "AI 模型"
+        "label": "提升转录质量"
       },
       "developer": {
         "description": "日志、诊断与数据",
@@ -871,7 +886,7 @@
         "label": "词典"
       },
       "general": {
-        "description": "外观、快捷键与启动",
+        "description": "外观与启动",
         "label": "偏好设置"
       },
       "permissions": {
@@ -886,9 +901,17 @@
         "description": "系统提示词工作室",
         "label": "提示词"
       },
+      "shortcuts": {
+        "description": "听写快捷键与触发方式",
+        "label": "快捷键"
+      },
       "transcription": {
         "description": "语音转文字引擎",
-        "label": "转录"
+        "label": "语音转文字"
+      },
+      "translation": {
+        "description": "离线语言翻译",
+        "label": "转换后翻译"
       }
     },
     "title": "设置"
@@ -1018,7 +1041,7 @@
         "title": "悬浮图标"
       },
       "hotkey": {
-        "activationMode": "激活模式",
+        "activationMode": "按键转换方式",
         "description": "用于开始和停止语音听写的组合键",
         "secondary": {
           "title": "方案 2 快捷键（独立模型/润色）",
@@ -1051,6 +1074,28 @@
         "launchAtLoginDescription": "登录时自动启动 ChordVox",
         "title": "启动"
       }
+    },
+    "translation": {
+      "title": "快捷键 3（翻译）",
+      "description": "使用 ONNX 模型进行离线翻译。说一种语言，获得翻译后的文本。",
+      "hotkeyLabel": "翻译快捷键",
+      "languagePair": "翻译方向",
+      "download": "下载",
+      "delete": "删除",
+      "downloadComplete": "下载完成",
+      "downloadFailed": "下载失败",
+      "downloading": "正在下载模型...",
+      "modelDeleted": "模型已删除",
+      "deleteFailed": "删除失败",
+      "testTitle": "模型测试",
+      "testDescription": "在这里输入文字以测试离线翻译模型的效果。",
+      "testInputPlaceholder": "输入待翻译的文字...",
+      "testOutputPlaceholder": "翻译结果将显示在这里...",
+      "testButton": "点击测试",
+      "testTranslating": "正在测试...",
+      "unsupportedPair": "当前语言方向暂不支持离线翻译。",
+      "pleaseDownloadFirst": "请先下载上方的翻译模型。",
+      "unsupportedPairTip": "请选择受支持的语言对（如：中英互译）。"
     },
     "permissions": {
       "accessibilityDescription": "转录后自动粘贴需要此权限",

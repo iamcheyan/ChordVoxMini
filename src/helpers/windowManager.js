@@ -27,6 +27,8 @@ class WindowManager {
     this.winPushState = null;
     this.secondaryHotkey = "";
     this.secondaryHotkeyAccelerator = null;
+    this.tertiaryHotkey = "";
+    this.tertiaryHotkeyAccelerator = null;
     this._cachedActivationMode = "tap";
     this._floatingIconAutoHide = false;
 
@@ -84,6 +86,7 @@ class WindowManager {
     await this.loadMainWindow();
     await this.initializeHotkey();
     await this.initializeSecondaryHotkey();
+    await this.initializeTertiaryHotkey();
     this.dragManager.setTargetWindow(this.mainWindow);
     MenuManager.setupMainMenu();
   }
@@ -167,9 +170,11 @@ class WindowManager {
 
       const activationMode = this.getActivationMode();
       const currentHotkey =
-        profileId === "secondary"
-          ? this.secondaryHotkey
-          : this.hotkeyManager.getCurrentHotkey?.();
+        profileId === "tertiary"
+          ? this.tertiaryHotkey
+          : profileId === "secondary"
+            ? this.secondaryHotkey
+            : this.hotkeyManager.getCurrentHotkey?.();
 
       if (
         process.platform === "darwin" &&
@@ -184,8 +189,8 @@ class WindowManager {
 
       // Windows push mode: always defer to native listener (globalShortcut can't detect key-up)
       if (process.platform === "win32" && activationMode === "push") {
-        if (profileId === "secondary") {
-          // Secondary profile uses global shortcuts only, so keep it usable in push mode.
+        if (profileId === "secondary" || profileId === "tertiary") {
+          // Secondary/tertiary profiles use global shortcuts only, so keep them usable in push mode.
           this.showDictationPanel();
           this.mainWindow.webContents.send("toggle-dictation", { profileId });
         }
@@ -433,6 +438,88 @@ class WindowManager {
       // Non-fatal: app should still work with primary hotkey.
       console.warn("[WindowManager] Failed to initialize secondary hotkey:", error.message);
     }
+  }
+
+  async initializeTertiaryHotkey() {
+    if (!this.mainWindow || this.mainWindow.isDestroyed()) return;
+
+    try {
+      const tertiaryHotkey = await this.mainWindow.webContents.executeJavaScript(
+        `localStorage.getItem("dictationKeyTertiary") || ""`
+      );
+      if (!tertiaryHotkey || !tertiaryHotkey.trim()) return;
+      await this.updateTertiaryHotkey(tertiaryHotkey.trim());
+    } catch (error) {
+      console.warn("[WindowManager] Failed to initialize tertiary hotkey:", error.message);
+    }
+  }
+
+  async unregisterTertiaryHotkey() {
+    if (this.tertiaryHotkeyAccelerator) {
+      try {
+        globalShortcut.unregister(this.tertiaryHotkeyAccelerator);
+      } catch (_error) {
+        // ignore
+      }
+    }
+    this.tertiaryHotkey = "";
+    this.tertiaryHotkeyAccelerator = null;
+  }
+
+  async updateTertiaryHotkey(hotkey) {
+    const normalizedHotkey = typeof hotkey === "string" ? hotkey.trim() : "";
+    const previousHotkey = this.tertiaryHotkey;
+    const previousAccelerator = this.tertiaryHotkeyAccelerator;
+
+    if (!normalizedHotkey) {
+      await this.unregisterTertiaryHotkey();
+      return { success: true, message: "Tertiary hotkey cleared" };
+    }
+
+    if (!this.isSecondaryHotkeySupported(normalizedHotkey)) {
+      return {
+        success: false,
+        message: "Tertiary hotkey cannot be Globe, right-side modifier, or modifier-only.",
+      };
+    }
+
+    const accelerator = normalizedHotkey.startsWith("Fn+")
+      ? normalizedHotkey.slice(3)
+      : normalizedHotkey;
+
+    if (previousHotkey && previousHotkey === normalizedHotkey && previousAccelerator) {
+      return { success: true, message: `Tertiary hotkey updated to: ${normalizedHotkey}` };
+    }
+
+    const primaryHotkey = this.hotkeyManager.getCurrentHotkey?.() || "";
+    const primaryAccelerator = primaryHotkey.startsWith("Fn+") ? primaryHotkey.slice(3) : primaryHotkey;
+    if (primaryAccelerator && primaryAccelerator === accelerator) {
+      return { success: false, message: "Tertiary hotkey must be different from primary hotkey." };
+    }
+
+    if (this.secondaryHotkeyAccelerator && this.secondaryHotkeyAccelerator === accelerator) {
+      return { success: false, message: "Tertiary hotkey must be different from secondary hotkey." };
+    }
+
+    await this.unregisterTertiaryHotkey();
+
+    const callback = this.createHotkeyCallback("tertiary");
+    const registered = globalShortcut.register(accelerator, callback);
+    if (!registered) {
+      if (previousHotkey && previousAccelerator) {
+        const previousCallback = this.createHotkeyCallback("tertiary");
+        const restored = globalShortcut.register(previousAccelerator, previousCallback);
+        if (restored) {
+          this.tertiaryHotkey = previousHotkey;
+          this.tertiaryHotkeyAccelerator = previousAccelerator;
+        }
+      }
+      return { success: false, message: `Failed to register tertiary hotkey: ${normalizedHotkey}` };
+    }
+
+    this.tertiaryHotkey = normalizedHotkey;
+    this.tertiaryHotkeyAccelerator = accelerator;
+    return { success: true, message: `Tertiary hotkey updated to: ${normalizedHotkey}` };
   }
 
   async unregisterSecondaryHotkey() {

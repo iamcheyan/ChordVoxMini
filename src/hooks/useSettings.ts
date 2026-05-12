@@ -73,6 +73,11 @@ export interface SecondaryHotkeyProfile {
   cloudReasoningMode: string;
 }
 
+export interface TertiaryHotkeyProfile {
+  translationSourceLang: string;
+  translationTargetLang: string;
+}
+
 export interface MicrophoneSettings {
   preferBuiltInMic: boolean;
   selectedMicDeviceId: string;
@@ -695,6 +700,51 @@ function useSettingsInternal() {
     [setDictationKeySecondaryLocal]
   );
 
+  const [dictationKeyTertiary, setDictationKeyTertiaryLocal] = useLocalStorage(
+    "dictationKeyTertiary",
+    "",
+    {
+      serialize: String,
+      deserialize: String,
+    }
+  );
+
+  const setDictationKeyTertiary = useCallback(
+    (key: string) => {
+      setDictationKeyTertiaryLocal(key);
+      if (typeof window !== "undefined" && window.electronAPI?.notifyHotkeyChanged) {
+        window.electronAPI.notifyHotkeyChanged(key, "tertiary");
+      }
+    },
+    [setDictationKeyTertiaryLocal]
+  );
+
+  const [tertiaryHotkeyProfile, setTertiaryHotkeyProfileRaw] = useLocalStorage<
+    TertiaryHotkeyProfile | null
+  >("tertiaryHotkeyProfile", null, {
+    serialize: JSON.stringify,
+    deserialize: (value) => {
+      if (!value) return null;
+      try {
+        const parsed = JSON.parse(value);
+        if (!parsed || typeof parsed !== "object") return null;
+        return {
+          translationSourceLang: typeof parsed.translationSourceLang === "string" ? parsed.translationSourceLang : "zh",
+          translationTargetLang: typeof parsed.translationTargetLang === "string" ? parsed.translationTargetLang : "en",
+        } satisfies TertiaryHotkeyProfile;
+      } catch {
+        return null;
+      }
+    },
+  });
+
+  const setTertiaryHotkeyProfile = useCallback(
+    (profile: TertiaryHotkeyProfile | null) => {
+      setTertiaryHotkeyProfileRaw(profile);
+    },
+    [setTertiaryHotkeyProfileRaw]
+  );
+
   const [secondaryHotkeyProfile, setSecondaryHotkeyProfileRaw] = useLocalStorage<
     SecondaryHotkeyProfile | null
   >("secondaryHotkeyProfile", null, {
@@ -1084,6 +1134,8 @@ function useSettingsInternal() {
     dictationKey,
     dictationKeySecondary,
     secondaryHotkeyProfile,
+    dictationKeyTertiary,
+    tertiaryHotkeyProfile,
     theme,
     localModelsDir,
     setUseLocalWhisper,
@@ -1122,6 +1174,8 @@ function useSettingsInternal() {
     setDictationKey,
     setDictationKeySecondary,
     setSecondaryHotkeyProfile,
+    setDictationKeyTertiary,
+    setTertiaryHotkeyProfile,
     captureSecondaryHotkeyProfileFromCurrent,
     setTheme,
     setLocalModelsDir: useCallback(

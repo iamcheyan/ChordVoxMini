@@ -306,6 +306,18 @@ export function HotkeyInput({
       e.preventDefault();
       e.stopPropagation();
 
+      // Clear hotkey on Escape or Backspace
+      if (e.key === "Escape" || e.key === "Backspace") {
+        onChange("");
+        // Use an empty string but don't just blur, actually finalize with empty
+        lastCapturedHotkeyRef.current = "";
+        setIsCapturing(false);
+        setActiveModifiers(new Set());
+        clearFnHeld();
+        containerRef.current?.blur();
+        return;
+      }
+
       // Track held modifiers for modifier-only capture
       heldModifiersRef.current = {
         ctrl: e.ctrlKey,
@@ -485,7 +497,7 @@ export function HotkeyInput({
             disabled
               ? "bg-muted/30 border-border cursor-not-allowed opacity-50"
               : isCapturing
-                ? "bg-primary/5 border-primary/30 shadow-[0_0_0_2px_rgba(37,99,212,0.1)]"
+                ? "bg-primary/5 border-primary/30"
                 : "bg-surface-1 border-border hover:border-border-hover hover:bg-surface-2"
           }
         `}
@@ -540,17 +552,17 @@ export function HotkeyInput({
                     {i > 0 && (
                       <span className="text-muted-foreground/40 text-lg font-light">+</span>
                     )}
-                    <kbd className="px-3 py-1.5 bg-surface-raised border border-border rounded-sm text-sm font-semibold text-foreground shadow-sm">
+                    <kbd className="px-3 py-1.5 bg-surface-raised border border-border rounded-sm text-sm font-semibold text-foreground">
                       {part}
                     </kbd>
                   </React.Fragment>
                 ))
               ) : isGlobe ? (
-                <kbd className="px-3 py-1.5 bg-surface-raised border border-border rounded-sm text-lg shadow-sm">
+                <kbd className="px-3 py-1.5 bg-surface-raised border border-border rounded-sm text-lg">
                   🌐
                 </kbd>
               ) : (
-                <kbd className="px-3 py-1.5 bg-surface-raised border border-border rounded-sm text-sm font-semibold text-foreground shadow-sm">
+                <kbd className="px-3 py-1.5 bg-surface-raised border border-border rounded-sm text-sm font-semibold text-foreground">
                   {displayValue}
                 </kbd>
               )}
@@ -587,7 +599,7 @@ export function HotkeyInput({
           disabled
             ? "bg-muted/30 border-border cursor-not-allowed opacity-50"
             : isCapturing
-              ? "bg-primary/5 border-primary/30 shadow-[0_0_0_2px_rgba(37,99,212,0.1)]"
+              ? "bg-primary/5 border-primary/30"
               : "bg-surface-1 border-border hover:border-border-hover hover:bg-surface-2"
         }
       `}

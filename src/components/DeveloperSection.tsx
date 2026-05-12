@@ -18,11 +18,14 @@ export default function DeveloperSection() {
   const [traceSessions, setTraceSessions] = useState<CallTraceSession[]>([]);
   const [traceEvents, setTraceEvents] = useState<CallTraceEvent[]>([]);
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
+  const [hfMirrorUrl, setHfMirrorUrl] = useState("");
+  const [isSavingMirror, setIsSavingMirror] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     loadDebugState();
     loadTraceSessions();
+    loadHfMirror();
   }, []);
 
   useEffect(() => {
@@ -47,6 +50,35 @@ export default function DeveloperSection() {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadHfMirror = async () => {
+    try {
+      const url = await window.electronAPI.getHfMirrorUrl();
+      setHfMirrorUrl(url || "");
+    } catch (error) {
+      console.error("Failed to load HF mirror:", error);
+    }
+  };
+
+  const handleSaveHfMirror = async () => {
+    try {
+      setIsSavingMirror(true);
+      await window.electronAPI.saveHfMirrorUrl(hfMirrorUrl);
+      toast({
+        title: t("developerSection.hfMirror.toasts.saved.title", "设置已保存"),
+        description: t("developerSection.hfMirror.toasts.saved.description", "下载镜像地址已更新"),
+        variant: "success",
+      });
+    } catch (error) {
+      toast({
+        title: t("developerSection.hfMirror.toasts.saveFailed.title", "保存失败"),
+        description: t("developerSection.hfMirror.toasts.saveFailed.description", "无法保存镜像地址"),
+        variant: "destructive",
+      });
+    } finally {
+      setIsSavingMirror(false);
     }
   };
 
@@ -326,6 +358,47 @@ export default function DeveloperSection() {
             </Button>
           </div>
         )}
+      </div>
+
+      {/* HF Mirror Setting */}
+      <div>
+        <div className="mb-5">
+          <h3 className="text-[15px] font-semibold text-foreground tracking-tight">
+            {t("developerSection.hfMirror.title", "下载镜像设置")}
+          </h3>
+          <p className="text-[12px] text-muted-foreground mt-1 leading-relaxed">
+            {t("developerSection.hfMirror.description", "如果你在下载模型时遇到网络问题，可以尝试设置 HuggingFace 镜像地址（例如：https://hf-mirror.com）。")}
+          </p>
+        </div>
+        <div className="rounded-xl border border-border/60 dark:border-border-subtle bg-card dark:bg-surface-2 overflow-hidden">
+          <div className="px-5 py-4 space-y-4">
+            <div className="space-y-2">
+              <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+                HuggingFace Mirror URL
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={hfMirrorUrl}
+                  onChange={(e) => setHfMirrorUrl(e.target.value)}
+                  placeholder="https://huggingface.co"
+                  className="flex-1 h-9 px-3 text-[12px] bg-muted/30 dark:bg-surface-raised/30 border border-border/40 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary/40 font-mono"
+                />
+                <Button 
+                  onClick={handleSaveHfMirror} 
+                  disabled={isSavingMirror}
+                  size="sm"
+                  className="h-9 px-4"
+                >
+                  {t("common.save", "保存")}
+                </Button>
+              </div>
+              <p className="text-[10px] text-muted-foreground/60 italic">
+                {t("developerSection.hfMirror.tip", "留空则恢复默认使用官方地址。此设置将影响翻译、Whisper 和 SenseVoice 模型的下载。")}
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* What gets logged */}

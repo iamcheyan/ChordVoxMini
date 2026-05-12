@@ -823,7 +823,7 @@
         "label": "Dicionário"
       },
       "general": {
-        "description": "Aparência, atalho e inicialização",
+        "description": "Aparência e inicialização",
         "label": "Preferências"
       },
       "permissions": {
@@ -837,6 +837,10 @@
       "prompts": {
         "description": "Estúdio de prompt do sistema",
         "label": "Prompts"
+      },
+      "shortcuts": {
+        "description": "Tecla de ditado e ativação",
+        "label": "Atalhos"
       },
       "transcription": {
         "description": "Motor de fala para texto",

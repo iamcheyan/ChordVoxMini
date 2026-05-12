@@ -10,6 +10,8 @@ import {
   BookOpen,
   ShieldCheck,
   Lock,
+  Keyboard,
+  Languages,
 } from "lucide-react";
 import SidebarModal, { SidebarItem } from "./ui/SidebarModal";
 import SettingsPage, { SettingsSectionType } from "./SettingsPage";
@@ -47,17 +49,24 @@ export default function SettingsModal({
         group: t("settingsModal.groups.speech"),
       },
       {
-        id: "dictionary",
-        label: t("settingsModal.sections.dictionary.label"),
-        icon: BookOpen,
-        description: t("settingsModal.sections.dictionary.description"),
-        group: t("settingsModal.groups.speech"),
-      },
-      {
         id: "aiModels",
         label: t("settingsModal.sections.aiModels.label"),
         icon: Brain,
         description: t("settingsModal.sections.aiModels.description"),
+        group: t("settingsModal.groups.speech"),
+      },
+      {
+        id: "translation",
+        label: t("settingsModal.sections.translation.label"),
+        icon: Languages,
+        description: t("settingsModal.sections.translation.description"),
+        group: t("settingsModal.groups.speech"),
+      },
+      {
+        id: "dictionary",
+        label: t("settingsModal.sections.dictionary.label"),
+        icon: BookOpen,
+        description: t("settingsModal.sections.dictionary.description"),
         group: t("settingsModal.groups.intelligence"),
       },
       {

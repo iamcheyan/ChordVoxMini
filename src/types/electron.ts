@@ -1,5 +1,5 @@
 export type LocalTranscriptionProvider = "whisper" | "nvidia" | "sensevoice" | "paraformer";
-export type DictationProfileId = "primary" | "secondary";
+export type DictationProfileId = "primary" | "secondary" | "tertiary";
 
 export interface DictationHotkeyPayload {
   profileId?: DictationProfileId;
@@ -546,6 +546,18 @@ declare global {
         config: any
       ) => Promise<{ success: boolean; text?: string; error?: string }>;
       checkLocalReasoningAvailable: () => Promise<boolean>;
+
+      // Translation operations
+      downloadTranslationModel: (modelName: string) => Promise<any>;
+      onTranslationDownloadProgress?: (callback: (event: any, data: any) => void) => () => void;
+      checkTranslationModel: (modelName: string) => Promise<{ downloaded: boolean }>;
+      deleteTranslationModel: (modelName: string) => Promise<any>;
+      translateText: (text: string, sourceLang: string, targetLang: string) => Promise<{ success: boolean; text?: string; error?: string }>;
+      listTranslationModels: () => Promise<Record<string, any>>;
+      updateTertiaryHotkey?: (key: string) => Promise<{ success: boolean; message: string }>;
+      getLocalModelsDir?: () => Promise<string>;
+      saveLocalModelsDir?: (dir: string) => Promise<void>;
+      resizeMainWindow: (sizeKey: string) => Promise<any>;
 
       // Anthropic reasoning
       processAnthropicReasoning: (

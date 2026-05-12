@@ -166,6 +166,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
   cleanupApp: () => ipcRenderer.invoke("cleanup-app"),
   updateHotkey: (hotkey) => ipcRenderer.invoke("update-hotkey", hotkey),
   updateSecondaryHotkey: (hotkey) => ipcRenderer.invoke("update-secondary-hotkey", hotkey),
+  updateTertiaryHotkey: (hotkey) => ipcRenderer.invoke("update-tertiary-hotkey", hotkey),
   setHotkeyListeningMode: (enabled, newHotkey) =>
     ipcRenderer.invoke("set-hotkey-listening-mode", enabled, newHotkey),
   getHotkeyModeInfo: () => ipcRenderer.invoke("get-hotkey-mode-info"),
@@ -238,6 +239,14 @@ contextBridge.exposeInMainWorld("electronAPI", {
   processLocalReasoning: (text, modelId, config) =>
     ipcRenderer.invoke("process-local-reasoning", text, modelId, config),
   checkLocalReasoningAvailable: () => ipcRenderer.invoke("check-local-reasoning-available"),
+
+  // Translation functions
+  downloadTranslationModel: (modelName) => ipcRenderer.invoke("download-translation-model", modelName),
+  onTranslationDownloadProgress: registerListener("translation-download-progress"),
+  checkTranslationModel: (modelName) => ipcRenderer.invoke("check-translation-model", modelName),
+  deleteTranslationModel: (modelName) => ipcRenderer.invoke("delete-translation-model", modelName),
+  translateText: (text, sourceLang, targetLang) => ipcRenderer.invoke("translate-text", text, sourceLang, targetLang),
+  listTranslationModels: () => ipcRenderer.invoke("list-translation-models"),
 
   // Anthropic reasoning
   processAnthropicReasoning: (text, modelId, config) =>

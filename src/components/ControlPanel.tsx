@@ -232,31 +232,31 @@ export default function ControlPanel() {
           </div>
 
           {!useReasoningModel && !aiCTADismissed && (
-            <div className="mb-3 relative rounded-lg border border-primary/20 bg-primary/5 dark:bg-primary/10 p-3">
+            <div className="mb-4 relative rounded border border-border bg-muted/30 p-3 overflow-hidden">
               <button
                 onClick={() => {
                   localStorage.setItem("aiCTADismissed", "true");
                   setAiCTADismissed(true);
                 }}
-                className="absolute top-2 right-2 p-1 rounded-sm text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                className="absolute top-2 right-2 p-1 text-muted-foreground hover:text-foreground transition-colors"
               >
                 <X size={14} />
               </button>
-              <div className="flex items-start gap-3 pr-6">
-                <div className="shrink-0 w-8 h-8 rounded-md bg-primary/10 dark:bg-primary/20 flex items-center justify-center">
+              <div className="flex items-start gap-3 pr-6 relative z-10">
+                <div className="shrink-0 w-8 h-8 rounded bg-background border border-border flex items-center justify-center">
                   <Sparkles size={16} className="text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[13px] font-medium text-foreground mb-0.5">
+                  <p className="text-[13px] font-medium text-foreground mb-1">
                     {t("controlPanel.aiCta.title")}
                   </p>
-                  <p className="text-[12px] text-muted-foreground mb-2">
+                  <p className="text-[11px] text-muted-foreground mb-3 leading-relaxed">
                     {t("controlPanel.aiCta.description")}
                   </p>
                   <Button
-                    variant="default"
+                    variant="outline"
                     size="sm"
-                    className="h-7 text-[11px]"
+                    className="h-7 px-3 text-[10px] font-medium"
                     onClick={() => {
                       setSettingsSection("aiModels");
                       setShowSettings(true);
@@ -269,7 +269,7 @@ export default function ControlPanel() {
             </div>
           )}
 
-          <div className="rounded-lg border border-border bg-card/50 dark:bg-card/30 backdrop-blur-sm">
+          <div className="bg-card border border-border rounded overflow-hidden animate-fade-in">
             {isLoading ? (
               <div className="flex items-center justify-center gap-2 py-8">
                 <Loader2 size={14} className="animate-spin text-primary" />

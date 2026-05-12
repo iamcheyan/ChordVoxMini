@@ -40,7 +40,8 @@ import { ActivationModeSelector } from "./ui/ActivationModeSelector";
 import { Toggle } from "./ui/toggle";
 import DeveloperSection from "./DeveloperSection";
 import LanguageSelector from "./ui/LanguageSelector";
-import { Skeleton } from "./ui/skeleton";
+import { Textarea } from "./ui/textarea";
+import { Play } from "lucide-react";
 import { Progress } from "./ui/progress";
 import { useToast } from "./ui/Toast";
 import { useTheme } from "../hooks/useTheme";
@@ -54,10 +55,11 @@ export type SettingsSectionType =
   | "general"
   | "transcription"
   | "dictionary"
+  | "translation"
   | "aiModels"
   | "prompts"
-  | "permissions"
   | "privacy"
+  | "permissions"
   | "developer";
 
 interface SettingsPageProps {
@@ -103,7 +105,7 @@ function SettingsPanel({
 }) {
   return (
     <div
-      className={`rounded-lg border border-border/50 dark:border-border-subtle/70 bg-card/50 dark:bg-surface-2/50 backdrop-blur-sm divide-y divide-border/30 dark:divide-border-subtle/50 ${className}`}
+      className={`bg-card border border-border rounded divide-y divide-border/50 ${className}`}
     >
       {children}
     </div>
@@ -173,6 +175,10 @@ interface TranscriptionSectionProps {
   localModelsDir: string;
   cloudTranscriptionMode: string;
   setCloudTranscriptionMode: (mode: string) => void;
+  dictationKey: string;
+  registerHotkey: (hotkey: string) => Promise<void>;
+  isHotkeyRegistering: boolean;
+  validateHotkeyForInput: (hotkey: string) => { isValid: boolean; error?: string };
 }
 
 function TranscriptionSection({
@@ -212,6 +218,10 @@ function TranscriptionSection({
   localModelsDir,
   cloudTranscriptionMode,
   setCloudTranscriptionMode,
+  dictationKey,
+  registerHotkey,
+  isHotkeyRegistering,
+  validateHotkeyForInput,
 }: TranscriptionSectionProps) {
   const { t, i18n } = useTranslation();
   const isCustomMode = useLocalWhisper;
@@ -222,6 +232,25 @@ function TranscriptionSection({
         title={t("settingsPage.transcription.title")}
         description={t("settingsPage.transcription.description")}
       />
+
+      {/* Dictation Hotkey - Moved here from Shortcuts */}
+      <SettingsPanel>
+        <SettingsPanelRow>
+          <div className="space-y-2">
+            <p className="text-[11px] font-medium text-muted-foreground/80">
+              {t("settingsPage.general.hotkey.title")}
+            </p>
+            <HotkeyInput
+              value={dictationKey}
+              onChange={async (newHotkey) => {
+                await registerHotkey(newHotkey);
+              }}
+              disabled={isHotkeyRegistering}
+              validate={validateHotkeyForInput}
+            />
+          </div>
+        </SettingsPanelRow>
+      </SettingsPanel>
 
       {/* Model picker */}
       <TranscriptionModelPicker
@@ -314,6 +343,10 @@ interface AiModelsSectionProps {
     variant?: "default" | "destructive" | "success";
     duration?: number;
   }) => void;
+  dictationKeySecondary: string;
+  registerSecondaryHotkey: (hotkey: string) => Promise<void>;
+  isSecondaryHotkeyRegistering: boolean;
+  validateSecondaryHotkeyForInput: (hotkey: string) => { isValid: boolean; error?: string };
 }
 
 function AiModelsSection({
@@ -344,6 +377,10 @@ function AiModelsSection({
   isSignedIn,
   showAlertDialog,
   toast,
+  dictationKeySecondary,
+  registerSecondaryHotkey,
+  isSecondaryHotkeyRegistering,
+  validateSecondaryHotkeyForInput,
 }: AiModelsSectionProps) {
   const { t, i18n } = useTranslation();
   const isCustomMode = true;
@@ -355,6 +392,25 @@ function AiModelsSection({
         title={t("settingsPage.aiModels.title")}
         description={t("settingsPage.aiModels.description")}
       />
+
+      {/* Secondary Hotkey (Scheme 2) - Moved here from Shortcuts */}
+      <SettingsPanel>
+        <SettingsPanelRow>
+          <div className="space-y-2">
+            <p className="text-[11px] font-medium text-muted-foreground/80">
+              {t("settingsPage.general.hotkey.secondary.title")}
+            </p>
+            <HotkeyInput
+              value={dictationKeySecondary}
+              onChange={async (newHotkey) => {
+                await registerSecondaryHotkey(newHotkey);
+              }}
+              disabled={isSecondaryHotkeyRegistering}
+              validate={validateSecondaryHotkeyForInput}
+            />
+          </div>
+        </SettingsPanelRow>
+      </SettingsPanel>
 
       {/* Enable toggle — always at top */}
       <SettingsPanel>
@@ -400,6 +456,346 @@ function AiModelsSection({
           )}
         </>
       )}
+    </div>
+  );
+}
+
+const TRANSLATION_LANGUAGES = [
+  { value: "zh", label: "中文" },
+  { value: "en", label: "English" },
+  { value: "ja", label: "日本語" },
+];
+
+interface TranslationSectionProps {
+  dictationKeyTertiary: string;
+  setDictationKeyTertiary: (key: string) => void;
+  tertiaryHotkeyProfile: { translationSourceLang: string; translationTargetLang: string } | null;
+  setTertiaryHotkeyProfile: (profile: { translationSourceLang: string; translationTargetLang: string } | null) => void;
+  isUsingGnomeHotkeys: boolean;
+  toast: ReturnType<typeof useToast>["toast"];
+}
+
+function TranslationSection({
+  dictationKeyTertiary,
+  setDictationKeyTertiary,
+  tertiaryHotkeyProfile,
+  setTertiaryHotkeyProfile,
+  isUsingGnomeHotkeys,
+  toast,
+}: TranslationSectionProps) {
+  const { t } = useTranslation();
+  const [isTertiaryHotkeyRegistering, setIsTertiaryHotkeyRegistering] = useState(false);
+  const [translationModels, setTranslationModels] = useState<Record<string, { name: string; sizeMb: number; sourceLang: string; targetLang: string }>>({});
+  const [downloadedModels, setDownloadedModels] = useState<Record<string, boolean>>({});
+  const [downloadingModel, setDownloadingModel] = useState<string | null>(null);
+  const [downloadProgress, setDownloadProgress] = useState<number>(0);
+  const [testInput, setTestInput] = useState("");
+  const [testOutput, setTestOutput] = useState("");
+  const [isTesting, setIsTesting] = useState(false);
+
+  const sourceLang = tertiaryHotkeyProfile?.translationSourceLang || "zh";
+  const targetLang = tertiaryHotkeyProfile?.translationTargetLang || "en";
+
+  const currentModelName = useMemo(() => {
+    const key = `${sourceLang}-${targetLang}`;
+    const mapping: Record<string, string> = {
+      "zh-en": "opus-mt-zh-en",
+      "zh-ja": "opus-mt-zh-ja",
+      "en-zh": "opus-mt-en-zh",
+      "ja-en": "opus-mt-ja-en",
+      "en-ja": "opus-mt-en-jap",
+    };
+    return mapping[key] || "";
+  }, [sourceLang, targetLang]);
+
+  const isSupported = !!currentModelName;
+  const isDownloaded = isSupported && !!downloadedModels[currentModelName];
+
+  useEffect(() => {
+    window.electronAPI?.listTranslationModels?.().then((models) => {
+      if (models) setTranslationModels(models);
+    });
+    // Check which models are downloaded
+    const checkModels = async () => {
+      const modelNames = ["opus-mt-zh-en", "opus-mt-zh-ja", "opus-mt-en-zh", "opus-mt-ja-en", "opus-mt-en-jap"];
+      const results: Record<string, boolean> = {};
+      for (const name of modelNames) {
+        try {
+          const result = await window.electronAPI?.checkTranslationModel?.(name);
+          results[name] = result?.downloaded || false;
+        } catch {
+          results[name] = false;
+        }
+      }
+      setDownloadedModels(results);
+    };
+    checkModels();
+  }, []);
+
+  const handleDownloadModel = async (modelName: string) => {
+    setDownloadingModel(modelName);
+    setDownloadProgress(0);
+
+    const cleanup = window.electronAPI?.onTranslationDownloadProgress?.((data: any) => {
+      if (data.model === modelName) {
+        if (data.type === "progress") {
+          setDownloadProgress(data.percentage || 0);
+        } else if (data.type === "complete") {
+          setDownloadedModels((prev) => ({ ...prev, [modelName]: true }));
+          setDownloadingModel(null);
+          setDownloadProgress(0);
+          cleanup?.();
+          toast({ title: t("settingsPage.translation.downloadComplete"), description: `${modelName} downloaded` });
+        } else if (data.type === "error") {
+          setDownloadingModel(null);
+          setDownloadProgress(0);
+          cleanup?.();
+          toast({ title: t("settingsPage.translation.downloadFailed"), description: data.error, variant: "destructive" });
+        }
+      }
+    });
+
+    try {
+      await window.electronAPI?.downloadTranslationModel?.(modelName);
+    } catch (error: any) {
+      setDownloadingModel(null);
+      setDownloadProgress(0);
+      cleanup?.();
+      toast({ title: t("settingsPage.translation.downloadFailed"), description: error.message, variant: "destructive" });
+    }
+  };
+
+  const handleDeleteModel = async (modelName: string) => {
+    try {
+      await window.electronAPI?.deleteTranslationModel?.(modelName);
+      setDownloadedModels((prev) => ({ ...prev, [modelName]: false }));
+      toast({ title: t("settingsPage.translation.modelDeleted"), description: `${modelName} deleted` });
+    } catch (error: any) {
+      toast({ title: t("settingsPage.translation.deleteFailed"), description: error.message, variant: "destructive" });
+    }
+  };
+
+  const validateTertiaryHotkeyForInput = useCallback(
+    (hotkey: string) => {
+      return getValidationMessage(hotkey, getPlatform());
+    },
+    []
+  );
+
+  const registerTertiaryHotkey = useCallback(
+    async (newHotkey: string) => {
+      if (!newHotkey || !newHotkey.trim()) return;
+      setIsTertiaryHotkeyRegistering(true);
+      try {
+        const result = await window.electronAPI?.updateTertiaryHotkey?.(newHotkey);
+        if (result?.success) {
+          setDictationKeyTertiary(newHotkey);
+        } else {
+          toast({ title: t("settingsPage.general.hotkey.registrationFailed"), description: result?.message, variant: "destructive" });
+        }
+      } catch (error: any) {
+        toast({ title: t("settingsPage.general.hotkey.registrationFailed"), description: error.message, variant: "destructive" });
+      } finally {
+        setIsTertiaryHotkeyRegistering(false);
+      }
+    },
+    [setDictationKeyTertiary, toast, t]
+  );
+
+  const updateLanguage = useCallback(
+    (key: "translationSourceLang" | "translationTargetLang", value: string) => {
+      const newProfile = {
+        translationSourceLang: key === "translationSourceLang" ? value : sourceLang,
+        translationTargetLang: key === "translationTargetLang" ? value : targetLang,
+      };
+      setTertiaryHotkeyProfile(newProfile);
+    },
+    [sourceLang, targetLang, setTertiaryHotkeyProfile]
+  );
+
+  const handleTestTranslation = async () => {
+    if (!testInput.trim()) return;
+    setIsTesting(true);
+    try {
+      const result = await window.electronAPI?.translateText?.(testInput, sourceLang, targetLang);
+      setTestOutput(result || "");
+    } catch (error: any) {
+      toast({ title: t("settingsPage.translation.testFailed", "Test Failed"), description: error.message, variant: "destructive" });
+    } finally {
+      setIsTesting(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <SectionHeader
+        title={t("settingsPage.translation.title", "Hotkey 3 (Translation)")}
+        description={t("settingsPage.translation.description", "Offline translation using ONNX models. Speak in one language and get translated text.")}
+      />
+      <SettingsPanel>
+        <SettingsPanelRow>
+          <div className="space-y-2">
+            <p className="text-[11px] font-medium text-muted-foreground/80">
+              {t("settingsPage.translation.hotkeyLabel", "Translation Hotkey")}
+            </p>
+            <HotkeyInput
+              value={dictationKeyTertiary}
+              onChange={async (newHotkey) => {
+                await registerTertiaryHotkey(newHotkey);
+              }}
+              disabled={isTertiaryHotkeyRegistering}
+              validate={validateTertiaryHotkeyForInput}
+            />
+          </div>
+        </SettingsPanelRow>
+
+        <SettingsPanelRow>
+          <div className="space-y-3">
+            <p className="text-[11px] font-medium text-muted-foreground/80">
+              {t("settingsPage.translation.languagePair", "Translation Direction")}
+            </p>
+            <div className="flex items-center gap-2">
+              <select
+                value={sourceLang}
+                onChange={(e) => updateLanguage("translationSourceLang", e.target.value)}
+                className="flex-1 h-8 text-[12px] rounded-md border border-border/50 bg-background px-2"
+              >
+                {TRANSLATION_LANGUAGES.map((lang) => (
+                  <option key={lang.value} value={lang.value}>{lang.label}</option>
+                ))}
+              </select>
+              <span className="text-muted-foreground/50 text-[12px]">→</span>
+              <select
+                value={targetLang}
+                onChange={(e) => updateLanguage("translationTargetLang", e.target.value)}
+                className="flex-1 h-8 text-[12px] rounded-md border border-border/50 bg-background px-2"
+              >
+                {TRANSLATION_LANGUAGES.filter((l) => l.value !== sourceLang).map((lang) => (
+                  <option key={lang.value} value={lang.value}>{lang.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </SettingsPanelRow>
+
+        {!isSupported && (
+          <SettingsPanelRow>
+            <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 p-2 rounded-md border border-amber-200 dark:border-amber-900/50">
+              <Shield className="w-3.5 h-3.5 shrink-0" />
+              <p className="text-[11px] leading-tight">
+                {t("settingsPage.translation.unsupportedPair", "This language pair is currently not supported for offline translation.")}
+              </p>
+            </div>
+          </SettingsPanelRow>
+        )}
+
+        {currentModelName && translationModels[currentModelName] && (
+          <SettingsPanelRow>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[12px] font-medium text-foreground">
+                  {translationModels[currentModelName].name}
+                </p>
+                <p className="text-[10px] text-muted-foreground/50">
+                  ~{translationModels[currentModelName].sizeMb}MB
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                {downloadedModels[currentModelName] ? (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleDeleteModel(currentModelName)}
+                    className="h-7 px-2 text-[11px] text-destructive hover:text-destructive"
+                  >
+                    {t("settingsPage.translation.delete", "Delete")}
+                  </Button>
+                ) : downloadingModel === currentModelName ? (
+                  <div className="flex flex-col items-end gap-1.5 min-w-[120px]">
+                    <div className="flex items-center gap-2 w-full">
+                      <Progress value={downloadProgress} className="flex-1 h-1.5" />
+                      <span className="text-[10px] font-medium text-primary tabular-nums">
+                        {Math.round(downloadProgress)}%
+                      </span>
+                    </div>
+                    <p className="text-[9px] text-muted-foreground/60 animate-pulse">
+                      {t("settingsPage.translation.downloading", "Downloading model...")}
+                    </p>
+                  </div>
+                ) : (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleDownloadModel(currentModelName)}
+                    className="h-7 px-2 text-[11px]"
+                  >
+                    <Download className="w-3 h-3 mr-1" />
+                    {t("settingsPage.translation.download", "Download")}
+                  </Button>
+                )}
+              </div>
+            </div>
+          </SettingsPanelRow>
+        )}
+      </SettingsPanel>
+
+      {/* Translation Test Tool */}
+      <div>
+        <SectionHeader
+          title={t("settingsPage.translation.testTitle")}
+          description={t("settingsPage.translation.testDescription")}
+        />
+        <SettingsPanel>
+          <SettingsPanelRow>
+            <div className="space-y-4 w-full">
+              <div className="space-y-2">
+                <Textarea
+                  placeholder={t("settingsPage.translation.testInputPlaceholder")}
+                  value={testInput}
+                  onChange={(e) => setTestInput(e.target.value)}
+                  className="min-h-[80px] text-[12px] resize-none"
+                />
+              </div>
+
+              <div className="flex justify-center">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleTestTranslation}
+                  disabled={isTesting || !testInput.trim() || !isDownloaded}
+                  className="h-8 gap-2 bg-primary/5 hover:bg-primary/10 border-primary/20 text-primary"
+                >
+                  {isTesting ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Play className="w-3 h-3 fill-current" />
+                  )}
+                  {isTesting ? t("settingsPage.translation.testTranslating") : t("settingsPage.translation.testButton")}
+                </Button>
+                {!isDownloaded && isSupported && (
+                  <p className="mt-2 text-[10px] text-amber-600 dark:text-amber-400">
+                    {t("settingsPage.translation.pleaseDownloadFirst", "Please download the translation model first.")}
+                  </p>
+                )}
+                {!isSupported && (
+                  <p className="mt-2 text-[10px] text-muted-foreground">
+                    {t("settingsPage.translation.unsupportedPairTip", "Please select a supported language pair (e.g., Chinese ↔ English).")}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Textarea
+                  placeholder={t("settingsPage.translation.testOutputPlaceholder")}
+                  value={testOutput}
+                  readOnly
+                  className="min-h-[80px] text-[12px] bg-muted/20 resize-none"
+                />
+              </div>
+            </div>
+          </SettingsPanelRow>
+        </SettingsPanel>
+      </div>
     </div>
   );
 }
@@ -480,6 +876,10 @@ export default function SettingsPage({
     setCustomReasoningApiKey,
     setDictationKey,
     setDictationKeySecondary,
+    dictationKeyTertiary,
+    tertiaryHotkeyProfile,
+    setDictationKeyTertiary,
+    setTertiaryHotkeyProfile,
     captureSecondaryHotkeyProfileFromCurrent,
     updateTranscriptionSettings,
     updateReasoningSettings,
@@ -990,6 +1390,16 @@ export default function SettingsPage({
       case "general":
         return (
           <div className="space-y-6">
+            {!isUsingGnomeHotkeys && (
+              <div>
+                <SectionHeader title={t("settingsPage.general.hotkey.activationMode")} />
+                <SettingsPanel>
+                  <SettingsPanelRow>
+                    <ActivationModeSelector value={activationMode} onChange={setActivationMode} />
+                  </SettingsPanelRow>
+                </SettingsPanel>
+              </div>
+            )}
 
             {/* Appearance */}
             <div>
@@ -1033,7 +1443,7 @@ export default function SettingsPage({
                               flex items-center gap-1 px-2.5 py-1 rounded-[5px] text-[11px] font-medium
                               transition-all duration-100
                               ${isSelected
-                                ? "bg-background dark:bg-surface-raised text-foreground shadow-sm"
+                                ? "bg-background dark:bg-surface-raised text-foreground"
                                 : "text-muted-foreground hover:text-foreground"
                               }
                             `}
@@ -1118,66 +1528,6 @@ export default function SettingsPage({
               </SettingsPanel>
             </div>
 
-            {/* Dictation Hotkey */}
-            <div>
-              <SectionHeader
-                title={t("settingsPage.general.hotkey.title")}
-                description={t("settingsPage.general.hotkey.description")}
-              />
-              <SettingsPanel>
-                <SettingsPanelRow>
-                  <HotkeyInput
-                    value={dictationKey}
-                    onChange={async (newHotkey) => {
-                      await registerHotkey(newHotkey);
-                    }}
-                    disabled={isHotkeyRegistering}
-                    validate={validateHotkeyForInput}
-                  />
-                </SettingsPanelRow>
-
-                <SettingsPanelRow>
-                  <div className="space-y-2">
-                    <p className="text-[11px] font-medium text-muted-foreground/80">
-                      {t("settingsPage.general.hotkey.secondary.title")}
-                    </p>
-                    <HotkeyInput
-                      value={dictationKeySecondary}
-                      onChange={async (newHotkey) => {
-                        await registerSecondaryHotkey(newHotkey);
-                      }}
-                      disabled={isSecondaryHotkeyRegistering}
-                      validate={validateSecondaryHotkeyForInput}
-                    />
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="text-[11px] text-muted-foreground/80">
-                        {secondaryHotkeyProfile
-                          ? t("settingsPage.general.hotkey.secondary.profileSavedState")
-                          : t("settingsPage.general.hotkey.secondary.profileUnsavedState")}
-                      </p>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={saveCurrentAsSecondaryProfile}
-                        className="h-7 px-2 text-[11px]"
-                      >
-                        {t("settingsPage.general.hotkey.secondary.saveCurrentAsProfile2")}
-                      </Button>
-                    </div>
-                  </div>
-                </SettingsPanelRow>
-
-                {!isUsingGnomeHotkeys && (
-                  <SettingsPanelRow>
-                    <p className="text-[11px] font-medium text-muted-foreground/80 mb-2">
-                      {t("settingsPage.general.hotkey.activationMode")}
-                    </p>
-                    <ActivationModeSelector value={activationMode} onChange={setActivationMode} />
-                  </SettingsPanelRow>
-                )}
-              </SettingsPanel>
-            </div>
-            
             {/* Local Model Storage */}
             <div>
               <SectionHeader
@@ -1246,6 +1596,7 @@ export default function SettingsPage({
                     onDeviceSelect={setSelectedMicDeviceId}
                   />
                 </SettingsPanelRow>
+
               </SettingsPanel>
             </div>
           </div>
@@ -1290,6 +1641,10 @@ export default function SettingsPage({
             cloudTranscriptionBaseUrl={cloudTranscriptionBaseUrl}
             setCloudTranscriptionBaseUrl={setCloudTranscriptionBaseUrl}
             toast={toast}
+            dictationKey={dictationKey}
+            registerHotkey={registerHotkey}
+            isHotkeyRegistering={isHotkeyRegistering}
+            validateHotkeyForInput={validateHotkeyForInput}
           />
         );
 
@@ -1431,6 +1786,20 @@ export default function SettingsPage({
           </div>
         );
 
+      case "translation":
+        return (
+          <div className="space-y-6">
+            <TranslationSection
+              dictationKeyTertiary={dictationKeyTertiary}
+              setDictationKeyTertiary={setDictationKeyTertiary}
+              tertiaryHotkeyProfile={tertiaryHotkeyProfile}
+              setTertiaryHotkeyProfile={setTertiaryHotkeyProfile}
+              isUsingGnomeHotkeys={isUsingGnomeHotkeys}
+              toast={toast}
+            />
+          </div>
+        );
+
       case "aiModels":
         return (
           <AiModelsSection
@@ -1461,6 +1830,10 @@ export default function SettingsPage({
             isSignedIn={isSignedIn}
             showAlertDialog={showAlertDialog}
             toast={toast}
+            dictationKeySecondary={dictationKeySecondary}
+            registerSecondaryHotkey={registerSecondaryHotkey}
+            isSecondaryHotkeyRegistering={isSecondaryHotkeyRegistering}
+            validateSecondaryHotkeyForInput={validateSecondaryHotkeyForInput}
           />
         );
 

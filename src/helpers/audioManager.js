@@ -9,6 +9,7 @@ const SHORT_CLIP_DURATION_SECONDS = 2.5;
 const REASONING_CACHE_TTL = 30000; // 30 seconds
 const TRANSCRIPTION_TIMEOUT_MS = 60_000; // 60 seconds — abort if transcription + reasoning exceeds this
 const SECONDARY_HOTKEY_PROFILE_KEY = "secondaryHotkeyProfile";
+const TERTIARY_HOTKEY_PROFILE_KEY = "tertiaryHotkeyProfile";
 
 function withTimeout(promise, ms, label = "Operation") {
   let timer;
@@ -152,15 +153,40 @@ registerProcessor("pcm-streaming-processor", PCMStreamingProcessor);
   }
 
   setActiveHotkeyProfile(profileId = "primary") {
-    this.activeHotkeyProfileId = profileId === "secondary" ? "secondary" : "primary";
+    if (profileId === "secondary" || profileId === "tertiary") {
+      this.activeHotkeyProfileId = profileId;
+    } else {
+      this.activeHotkeyProfileId = "primary";
+    }
   }
 
   getActiveHotkeyProfile() {
-    if (this.activeHotkeyProfileId !== "secondary") {
-      return null;
+    if (this.activeHotkeyProfileId === "secondary") {
+      try {
+        const raw = localStorage.getItem(SECONDARY_HOTKEY_PROFILE_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        return parsed && typeof parsed === "object" ? parsed : null;
+      } catch {
+        return null;
+      }
     }
+    if (this.activeHotkeyProfileId === "tertiary") {
+      try {
+        const raw = localStorage.getItem(TERTIARY_HOTKEY_PROFILE_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        return parsed && typeof parsed === "object" ? parsed : null;
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  }
+
+  getTertiaryProfile() {
     try {
-      const raw = localStorage.getItem(SECONDARY_HOTKEY_PROFILE_KEY);
+      const raw = localStorage.getItem(TERTIARY_HOTKEY_PROFILE_KEY);
       if (!raw) return null;
       const parsed = JSON.parse(raw);
       return parsed && typeof parsed === "object" ? parsed : null;
@@ -1259,6 +1285,61 @@ registerProcessor("pcm-streaming-processor", PCMStreamingProcessor);
       textPreview: normalizedText.substring(0, 100) + (normalizedText.length > 100 ? "..." : ""),
       timestamp: new Date().toISOString(),
     });
+
+    // Handle tertiary profile: translate instead of reason
+    if (this.activeHotkeyProfileId === "tertiary") {
+      const tertiaryProfile = this.getTertiaryProfile();
+      if (tertiaryProfile) {
+        const { translationSourceLang, translationTargetLang } = tertiaryProfile;
+        if (translationSourceLang && translationTargetLang) {
+          try {
+            this.emitCallTrace("translation", "start", {
+              sourceLang: translationSourceLang,
+              targetLang: translationTargetLang,
+            });
+            logger.info("Starting translation", {
+              sourceLang: translationSourceLang,
+              targetLang: translationTargetLang,
+              textLength: normalizedText.length,
+            }, "translation");
+
+            const result = await window.electronAPI.translateText(
+              normalizedText,
+              translationSourceLang,
+              translationTargetLang
+            );
+
+            if (result.success && result.text) {
+              this.emitCallTrace("translation", "success", {
+                sourceLang: translationSourceLang,
+                targetLang: translationTargetLang,
+              });
+              logger.info("Translation complete", {
+                sourceLang: translationSourceLang,
+                targetLang: translationTargetLang,
+                inputLength: normalizedText.length,
+                outputLength: result.text.length,
+              }, "translation");
+              return result.text;
+            } else {
+              this.emitCallTrace("translation", "error", {
+                error: result.error || "Translation failed",
+              });
+              logger.error("Translation failed", { error: result.error }, "translation");
+              return normalizedText;
+            }
+          } catch (error) {
+            this.emitCallTrace("translation", "error", {
+              error: error.message,
+            });
+            logger.error("Translation error", { error: error.message }, "translation");
+            return normalizedText;
+          }
+        }
+      }
+      // If no tertiary profile or no languages set, return text as-is
+      return normalizedText;
+    }
 
     const reasoningModel =
       typeof window !== "undefined" && window.localStorage
