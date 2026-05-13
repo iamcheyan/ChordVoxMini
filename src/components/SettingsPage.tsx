@@ -1818,7 +1818,7 @@ export default function SettingsPage({
             toast={toast}
             dictationKeySecondary={dictationKeySecondary}
             registerSecondaryHotkey={registerSecondaryHotkey}
-            isSecondaryHotkeyRegistering={isSecondaryHotkeyRegistering}
+            isSecondaryRegistering={isSecondaryRegistering}
             validateSecondaryHotkeyForInput={validateSecondaryHotkeyForInput}
           />
         );
