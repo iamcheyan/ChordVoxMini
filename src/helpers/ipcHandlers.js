@@ -1432,13 +1432,6 @@ class IPCHandlers {
       return this.environmentManager.saveCustomReasoningKey(key);
     });
 
-    ipcMain.handle("get-license-api-base-url", async () => {
-      return this.environmentManager.getLicenseApiBaseUrl();
-    });
-
-    ipcMain.handle("save-license-api-base-url", async (_event, url) => {
-      return this.environmentManager.saveLicenseApiBaseUrl(url);
-    });
 
     // Dictation key handlers for reliable persistence across restarts
     ipcMain.handle("get-dictation-key", async () => {

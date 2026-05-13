@@ -13,9 +13,6 @@ const PERSISTED_KEYS = [
   "MISTRAL_API_KEY",
   "CUSTOM_TRANSCRIPTION_API_KEY",
   "CUSTOM_REASONING_API_KEY",
-  "LICENSE_API_BASE_URL",
-  "LICENSE_PRODUCT_ID",
-  "LICENSE_ALLOW_DEV_KEYS",
   "LOCAL_TRANSCRIPTION_PROVIDER",
   "PARAKEET_MODEL",
   "LOCAL_WHISPER_MODEL",
@@ -135,28 +132,6 @@ class EnvironmentManager {
 
   saveCustomReasoningKey(key) {
     return this._saveKey("CUSTOM_REASONING_API_KEY", key);
-  }
-
-  getLicenseApiBaseUrl() {
-    return this._getKey("LICENSE_API_BASE_URL");
-  }
-
-  saveLicenseApiBaseUrl(url) {
-    const normalized = String(url || "").trim().replace(/\/+$/, "");
-    const result = this._saveKey("LICENSE_API_BASE_URL", normalized);
-    this.saveAllKeysToEnvFile().catch(() => { });
-    return { ...result, value: normalized };
-  }
-
-  getLicenseProductId() {
-    return this._getKey("LICENSE_PRODUCT_ID");
-  }
-
-  saveLicenseProductId(productId) {
-    const normalized = String(productId || "").trim();
-    const result = this._saveKey("LICENSE_PRODUCT_ID", normalized);
-    this.saveAllKeysToEnvFile().catch(() => { });
-    return { ...result, value: normalized };
   }
 
   getDictationKey() {

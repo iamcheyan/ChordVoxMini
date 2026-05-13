@@ -2,130 +2,61 @@
   <img src="assets/logo.png" alt="ChordVox" width="128" />
 </p>
 
-<h1 align="center">ChordVox AI语音输入法</h1>
-
-<h3 align="center">还在忍受低效打字 OR 偷隐私的传统语音识别？</h3>
-<h2 align="center">“你的嘴，就是最快的键盘。”</h2>
+<h1 align="center">ChordVox (全离线免费版)</h1>
 
 <p align="center">
-  把说话的速度，变成出稿的速度。对话、文章、邮件，开口即成。<br>
-  按需自由接入<b>最强 AI 模型（ChatGPT / Gemini / Claude）</b>，一句话即可自动润色排版。
-</p>
-
-<p align="center">
-  <img src="assets/warning-zh-trap-v4.svg" alt="拒绝大厂“免费但偷数据”的陷阱。" />
-</p>
-
-<p align="center">
-  别让你的私密对话变成 AI 模型的免费语料，也别让你的个人数据沦为定制广告的养料。<br>
-  <strong>真正的永久离线免费，你的隐私连网线都出不去。</strong>
-</p>
-
-<p align="center">
-  选择语言：<br/>
-  <a href="./README.md"><img src="assets/button-english-homepage-v4.svg" alt="English Homepage" /></a>
-  <a href="./README.zh.md"><img src="assets/button-zh-intro-v4.svg" alt="中文介绍页面" /></a>
-</p>
-
-<p align="center">
-  <a href="https://github.com/GravityPoet/ChordVox/releases"><img src="assets/button-download-zh.svg" alt="下载" /></a>
-</p>
-
-<p align="center">
-  <strong>加入 ChordVox QQ 交流群</strong><br>
-  使用问题、版本反馈和功能建议都可以进群交流。<br>
-  <img src="assets/chordvox-qq-group-qr.jpg" alt="ChordVox QQ 交流群二维码" width="180" />
-</p>
-
-<p align="center">
-  <img src="assets/chordvox-demo-zh-v35.webp" alt="ChordVox 中文动态演示：键盘打字对比 AI 语音输入" width="100%" />
+  <strong>100% 离线、100% 免费、100% 隐私保护。</strong><br>
+  拒绝订阅制，拒绝付费墙，所有功能均在本地完成。
 </p>
 
 ---
 
-### 应用场景 / 痛点解决
+### 项目特点
 
-| 😩 痛点 | ✅ ChordVox 方案 |
-|---|---|
-| 打字太慢，思维跑在手指前面 | 自然说话 → 2 秒内获得精修文本 |
-| 云端语音工具将录音发往未知服务器 | 本地 STT，音频不出机器 |
-| 语音识别原文粗糙、标点混乱 | AI 润色自动修正语法、标点和排版 |
-| 在听写软件和目标应用之间反复切窗 | 光标处直接粘贴，零中断 |
-| 专业术语（医学 / 法律 / 代码）被识别错误 | 自定义词典引导模型偏好你的领域用词 |
-| 不同任务需要不同 AI 质量 | 双配置热键：一路快速草稿（Groq），一路精修输出（GPT-5 / Claude） |
+这个版本的 **ChordVox** 旨在提供一个完全独立、无网络依赖的输入增强体验。
+
+1. **彻底去中心化**：去掉了原版中所有的 Pro 订阅、账户系统和付费锁定。
+2. **纯离线运行**：所有的语音识别（STT）、文本润色、以及新增的翻译功能都完全在本地运行，不上传任何音频或文字。
+3. **新增离线翻译**：集成了 NLLB-200 翻译引擎。你可以直接说中文，系统会自动将其转换为日语并粘贴到光标处。
 
 ---
 
-### 核心特性
+### 主要功能
 
-- 🔒 **隐私优先，本地运行** — 内置三大语音引擎（whisper.cpp · NVIDIA Parakeet · SenseVoice），音频不出本机。无需 Python 环境，原生二进制开箱即用。
-
-- 🧠 **AI 润色管线** — 语音原文 → 精修成文。对接 OpenAI / Anthropic / Gemini / Groq / 自定义端点，或通过内置 llama.cpp 跑本地 GGUF 模型。支持自动纠正句法、上下文智能修复与排版。
-
-- ⌨️ **光标处落字** — 快捷键一按：录音 → 转写 → 润色 → 粘贴到当前光标，全程无需切换窗口。macOS Globe/Fn 键原生 Swift 监听，Windows 底层键盘钩子，支持真正的 Push-to-Talk。
-
-- 🎯 **助手命名与指令模式** — 为 AI 助手设定专属名字。对它说"Hi ChordVox，帮我起草一封回信……"，AI 瞬间从打字模式切换为智能助理模式。
-
-- 📖 **专业自定义词典** — 添加专属人名、术语、缩写，大幅提升医学 / 法律 / 代码等领域的转录准确度。
-
-- 🌍 **58 种语言 · 10 种界面语言** — 自动检测或手动锁定语种。界面完整本地化：中 / 英 / 日 / 德 / 法 / 西 / 葡 / 意 / 俄。
-
-- 🔄 **双配置热键** — 两套独立快捷键绑定不同 STT 引擎、AI 模型与润色策略，一键切换工作流。
-
-- 🧹 **存储空间管理** — 在设置面板一键卸载 Whisper / GGUF 模型缓存，释放磁盘空间。
+- ⌨️ **语音输入，即说即贴**：只需一个快捷键：录音 → 识别 →（翻译）→ 自动粘贴。
+- 🧠 **本地 AI 润色**：利用本地模型自动修正语气词，美化句式，让表达更专业。
+- 🌐 **离线中日翻译**：专门针对中日翻译场景进行了优化。说中文，出日文，全程本地计算。
+- 🚀 **性能极致优化**：
+    *   **Mac 硬件加速**：针对 M1/M2/M3 芯片开启了 CoreML 加速。
+    *   **毫秒级响应**：优化了翻译模型加载逻辑，实现“常驻内存，即时响应”。
 
 ---
 
-### 运行机制
+### ⚠️ 免责声明与提醒
 
-```
-┌─────────────┐    ┌──────────────────────────┐    ┌─────────────────┐    ┌──────────────┐
-│  快捷键      │───▶│  音频采集                │───▶│  语音引擎       │───▶│  AI 润色     │───▶ 粘贴至
-│  (Globe/Fn/  │    │  MediaRecorder → IPC     │    │  whisper.cpp    │    │  GPT / Claude│    光标
-│   自定义)    │    │  → 临时 .wav 文件        │    │  Parakeet       │    │  Gemini/Groq │
-└─────────────┘    └──────────────────────────┘    │  SenseVoice     │    │  本地 GGUF   │
-                                                    │  云端 STT       │    └──────────────┘
-                                                    └─────────────────┘
-```
-
-**技术栈**：Electron 36 · React 19 · TypeScript · Vite · Tailwind CSS v4 · shadcn/ui · better-sqlite3 · whisper.cpp · sherpa-onnx (Parakeet) · llama.cpp · FFmpeg（内置）
+- **开发状态**：本项目由个人开发者在较短时间内重构完成，**可能存在不少 Bug 或不稳定因素**。
+- **跨平台支持**：目前仅在 **macOS** 平台上进行了完整测试。Windows 和 Linux 版本可能存在兼容性问题，需用户自行解决。
+- **技术支持**：建议用户具备一定的折腾能力，遇到问题欢迎通过 Issue 交流，但请理解我们无法提供商业级的即时技术支持。
 
 ---
 
-### 下载
+### 技术架构
 
-<p align="center">
-  <a href="https://github.com/GravityPoet/ChordVox/releases"><img src="assets/button-download-zh.svg" alt="下载" /></a>
-</p>
-
-进入发布页后，如有需要先点 `Show all assets`，再选择你的系统对应文件：
-
-- macOS（Apple Silicon）：`ChordVox-*-arm64.dmg`
-- Windows（x64）：`ChordVox-Setup-*.exe`
-- Linux（x64）：`ChordVox-*-linux-x86_64.AppImage`、`ChordVox-*-linux-amd64.deb` 或 `ChordVox-*-linux-x86_64.rpm`
-
-> 永久免费本地语音转文字。AI 文本增强、文件转录、BYOK 和高级工作流可选 Pro。
-
-#### macOS 首次启动
-
-非 App Store 下载可能被 Gatekeeper 拦截，执行以下命令解除：
-
-```bash
-xattr -dr com.apple.quarantine /Applications/ChordVox.app && open /Applications/ChordVox.app
-```
+- **外壳**: Electron + React + TypeScript
+- **语音识别**: whisper.cpp / SenseVoice / Parakeet
+- **离线翻译**: NLLB-200 (ONNX Runtime)
+- **本地 LLM**: llama.cpp
 
 ---
 
-### 快速链接
+### 编译与开发
 
-- 🌐 [官网 chordvox.com](https://chordvox.com)
-- 📦 [所有版本](https://github.com/GravityPoet/ChordVox/releases)
-- 💬 QQ 交流群：扫码见上方
-- 📖 [完整技术文档](docs/README_LEGACY.md)
-- 📬 联系方式：`moonlitpoet@proton.me`
+1. **安装环境**：确保你的机器安装了 Node.js 和 Python 3。
+2. **安装依赖**：`npm install`
+3. **启动开发**：`npm run dev`
 
 ---
 
 ### 许可证
 
-MIT License. 详见 [LICENSE](./LICENSE) 与 [NOTICE](./NOTICE) 文件。
+MIT License.
