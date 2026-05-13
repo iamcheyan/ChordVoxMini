@@ -2,14 +2,15 @@ import React, { Suspense, useState, useEffect, useRef, useCallback } from "react
 import { useTranslation } from "react-i18next";
 import { Button } from "./ui/button";
 import {
-  Trash2,
-  Settings,
-  FileText,
-  Mic,
+  XIcon,
+  SparklesIcon,
+  HistoryIcon,
+  SettingsIcon,
+  Trash2Icon,
+  MicIcon,
+  FileTextIcon,
   Loader2,
-  Sparkles,
-  X,
-} from "lucide-react";
+} from "./ui/Icons";
 import type { SettingsSectionType } from "./SettingsModal";
 import TitleBar from "./TitleBar";
 import SupportDropdown from "./ui/SupportDropdown";
@@ -184,7 +185,7 @@ export default function ControlPanel() {
               }}
               className="text-foreground/70 hover:text-foreground hover:bg-foreground/10"
             >
-              <Settings size={16} />
+              <SettingsIcon size={16} />
             </Button>
           </>
         }
@@ -206,17 +207,14 @@ export default function ControlPanel() {
 
       <div className="p-4">
         <div className="max-w-3xl mx-auto">
-          <div className="flex items-center justify-between mb-3 px-1">
-            <div className="flex items-center gap-2">
-              <FileText size={14} className="text-primary" />
-              <h2 className="text-sm font-semibold text-foreground">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="shrink-0 w-8 h-8 rounded bg-background border border-border flex items-center justify-center">
+              <HistoryIcon size={16} className="text-muted-foreground" />
+            </div>
+            <div className="flex-1">
+              <h2 className="text-[13px] font-bold text-foreground tracking-tight">
                 {t("controlPanel.history.title")}
               </h2>
-              {history.length > 0 && (
-                <span className="text-[11px] text-muted-foreground tabular-nums">
-                  ({history.length})
-                </span>
-              )}
             </div>
             {history.length > 0 && (
               <Button
@@ -225,10 +223,16 @@ export default function ControlPanel() {
                 size="sm"
                 className="h-7 px-2 text-[11px] text-muted-foreground hover:text-destructive hover:bg-destructive/10"
               >
-                <Trash2 size={12} className="mr-1" />
+                <Trash2Icon size={12} className="mr-1" />
                 {t("controlPanel.history.clear")}
               </Button>
             )}
+            <button
+              className="p-1.5 text-muted-foreground hover:text-foreground transition-none"
+              onClick={() => setShowSettings(true)}
+            >
+              <SettingsIcon size={15} />
+            </button>
           </div>
 
           {!useReasoningModel && !aiCTADismissed && (
@@ -240,11 +244,11 @@ export default function ControlPanel() {
                 }}
                 className="absolute top-2 right-2 p-1 text-muted-foreground hover:text-foreground transition-colors"
               >
-                <X size={14} />
+                <XIcon size={14} />
               </button>
               <div className="flex items-start gap-3 pr-6 relative z-10">
                 <div className="shrink-0 w-8 h-8 rounded bg-background border border-border flex items-center justify-center">
-                  <Sparkles size={16} className="text-primary" />
+                  <SparklesIcon size={16} className="text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-[13px] font-medium text-foreground mb-1">

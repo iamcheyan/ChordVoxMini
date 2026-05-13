@@ -38,14 +38,21 @@ class TranslationManager {
   isModelDownloaded(modelName) {
     try {
       this.validateModelName(modelName);
-    } catch {
+    } catch (e) {
+      debugLogger.error(`Validation failed for ${modelName}: ${e.message}`);
       return false;
     }
     const modelDir = this.getModelPath(modelName);
-    if (!fs.existsSync(modelDir)) return false;
+    if (!fs.existsSync(modelDir)) {
+      debugLogger.warn(`Model directory does not exist: ${modelDir}`);
+      return false;
+    }
 
     const config = getTranslationModelConfig(modelName);
-    if (!config) return false;
+    if (!config) {
+      debugLogger.error(`No config found for ${modelName}`);
+      return false;
+    }
 
     const requiredFiles = [
       config.files.encoder,
@@ -53,7 +60,16 @@ class TranslationManager {
       config.files.tokenizer,
       config.files.config,
     ];
-    return requiredFiles.every((f) => fs.existsSync(path.join(modelDir, f)));
+
+    for (const f of requiredFiles) {
+      const p = path.join(modelDir, f);
+      if (!fs.existsSync(p)) {
+        debugLogger.warn(`Required file missing: ${p}`);
+        return false;
+      }
+    }
+
+    return true;
   }
 
   getDownloadedModels() {
@@ -63,7 +79,13 @@ class TranslationManager {
   getModelsByDirection(sourceLang, targetLang) {
     return getValidModelNames().filter((name) => {
       const config = getTranslationModelConfig(name);
-      return config && config.sourceLang === sourceLang && config.targetLang === targetLang;
+      if (!config) return false;
+      if (config.isMultilingual && config.supportedPairs) {
+        return config.supportedPairs.some(
+          (pair) => pair[0] === sourceLang && pair[1] === targetLang
+        );
+      }
+      return config.sourceLang === sourceLang && config.targetLang === targetLang;
     });
   }
 
@@ -78,6 +100,9 @@ class TranslationManager {
     await fsPromises.mkdir(modelDir, { recursive: true });
 
     if (this.isModelDownloaded(modelName)) {
+      if (progressCallback) {
+        progressCallback({ type: "complete", model: modelName, percentage: 100 });
+      }
       return { model: modelName, downloaded: true, path: modelDir, success: true };
     }
 

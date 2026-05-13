@@ -6,7 +6,8 @@ import {
   Download,
   Upload,
   Command,
-  Mic,
+  MicIcon,
+  SparklesIcon,
   Shield,
   FolderOpen,
   Sun,
@@ -14,7 +15,10 @@ import {
   Monitor,
   Key,
   Loader2,
-} from "lucide-react";
+  SettingsIcon,
+  XIcon,
+  HistoryIcon,
+} from "./ui/Icons";
 import MicPermissionWarning from "./ui/MicPermissionWarning";
 import MicrophoneSettings from "./ui/MicrophoneSettings";
 import PermissionCard from "./ui/PermissionCard";
@@ -500,7 +504,8 @@ function TranslationSection({
     const key = `${sourceLang}-${targetLang}`;
     const mapping: Record<string, string> = {
       "zh-en": "opus-mt-zh-en",
-      "zh-ja": "opus-mt-zh-ja",
+      "zh-ja": "nllb-200-distilled-600M",
+      "ja-zh": "nllb-200-distilled-600M",
       "en-zh": "opus-mt-en-zh",
       "ja-en": "opus-mt-ja-en",
       "en-ja": "opus-mt-en-jap",
@@ -517,7 +522,14 @@ function TranslationSection({
     });
     // Check which models are downloaded
     const checkModels = async () => {
-      const modelNames = ["opus-mt-zh-en", "opus-mt-zh-ja", "opus-mt-en-zh", "opus-mt-ja-en", "opus-mt-en-jap"];
+      const modelNames = [
+        "opus-mt-zh-en",
+        "opus-mt-zh-ja",
+        "opus-mt-en-zh",
+        "opus-mt-ja-en",
+        "opus-mt-en-jap",
+        "nllb-200-distilled-600M",
+      ];
       const results: Record<string, boolean> = {};
       for (const name of modelNames) {
         try {
@@ -530,7 +542,7 @@ function TranslationSection({
       setDownloadedModels(results);
     };
     checkModels();
-  }, []);
+  }, [currentModelName]);
 
   const handleDownloadModel = async (modelName: string) => {
     setDownloadingModel(modelName);

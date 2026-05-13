@@ -1,29 +1,17 @@
 import React, { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import "./index.css";
-import { Check, X } from "lucide-react";
+import {
+  MicIcon,
+  XIcon,
+  CheckIcon,
+} from "./components/ui/Icons";
 import { useToast } from "./components/ui/Toast";
 import { LoadingDots } from "./components/ui/LoadingDots";
 import { useHotkey } from "./hooks/useHotkey";
 import { useWindowDrag } from "./hooks/useWindowDrag";
 import { useAudioRecording } from "./hooks/useAudioRecording";
-// Sound Wave Icon Component (for idle/hover states)
-const SoundWaveIcon = ({ size = 16 }) => {
-  return (
-    <div className="flex items-center justify-center gap-1">
-      <div
-        className={`bg-white rounded-full`}
-        style={{ width: size * 0.25, height: size * 0.6 }}
-      ></div>
-      <div className={`bg-white rounded-full`} style={{ width: size * 0.25, height: size }}></div>
-      <div
-        className={`bg-white rounded-full`}
-        style={{ width: size * 0.25, height: size * 0.6 }}
-      ></div>
-    </div>
-  );
-};
-
+import { formatHotkeyLabel } from "./utils/hotkeys";
 // Voice Wave Animation Component (for processing state)
 const VoiceWaveIndicator = ({ isListening }) => {
   return (
@@ -31,12 +19,12 @@ const VoiceWaveIndicator = ({ isListening }) => {
       {[...Array(4)].map((_, i) => (
         <div
           key={i}
-          className={`w-0.5 bg-white rounded-full transition-all duration-150 ${
-            isListening ? "animate-pulse h-4" : "h-2"
+          className={`w-0.5 bg-white rounded-full ${
+            isListening ? "animate-pulse h-3" : "h-1"
           }`}
           style={{
             animationDelay: isListening ? `${i * 0.1}s` : "0s",
-            animationDuration: isListening ? `${0.6 + i * 0.1}s` : "0s",
+            animationDuration: isListening ? `${0.8}s` : "0s",
           }}
         />
       ))}
@@ -410,20 +398,20 @@ export default function App() {
 
               {/* Dynamic content based on state */}
               {micState === "idle" || micState === "hover" ? (
-                <SoundWaveIcon size={micState === "idle" ? 12 : 14} />
+                <MicIcon size={micState === "idle" ? 14 : 16} />
               ) : micState === "recording" ? (
                 <LoadingDots />
               ) : micState === "processing" ? (
                 <VoiceWaveIndicator isListening={true} />
               ) : micState === "success" ? (
-                <Check size={15} strokeWidth={3} className="text-white" />
+                <CheckIcon size={16} className="text-white" />
               ) : null}
             </button>
           </Tooltip>
           {isCommandMenuOpen && (
             <div
               ref={commandMenuRef}
-              className="absolute bottom-full right-0 mb-3 w-40 bg-card border border-border rounded shadow-md overflow-hidden animate-fade-in"
+              className="absolute bottom-full right-0 mb-3 w-40 bg-card border border-border rounded overflow-hidden animate-fade-in"
               onMouseEnter={() => {
                 setWindowInteractivity(true);
               }}

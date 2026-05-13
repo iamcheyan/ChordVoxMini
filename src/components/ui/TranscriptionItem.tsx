@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "./button";
-import { Copy, Trash2, ChevronDown, ChevronUp } from "lucide-react";
+import { CopyIcon, TrashIcon } from "./Icons";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import type { TranscriptionItem as TranscriptionItemType } from "../../types/electron";
 import { cn } from "../lib/utils";
 
@@ -105,7 +106,7 @@ export default function TranscriptionItem({
             onClick={() => onCopy(item.text)}
             className="h-7 w-7 rounded-sm text-muted-foreground hover:text-foreground hover:bg-black/5"
           >
-            <Copy size={13} />
+            <CopyIcon size={13} />
           </Button>
           <Button
             size="icon"
@@ -113,7 +114,7 @@ export default function TranscriptionItem({
             onClick={() => onDelete(item.id)}
             className="h-7 w-7 rounded-sm text-muted-foreground hover:text-destructive hover:bg-destructive/10"
           >
-            <Trash2 size={13} />
+            <TrashIcon size={13} />
           </Button>
         </div>
       </div>

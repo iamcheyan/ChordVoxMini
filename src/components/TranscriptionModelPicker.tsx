@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { Download, Trash2, Cloud, Lock, X, AlertTriangle, ExternalLink } from "lucide-react";
+import { Download, Trash2, Cloud, Lock, X, AlertTriangle, ExternalLink } from "./ui/Icons";
 import { ProviderIcon } from "./ui/ProviderIcon";
 import { ProviderTabs } from "./ui/ProviderTabs";
 import ModelCardList from "./ui/ModelCardList";

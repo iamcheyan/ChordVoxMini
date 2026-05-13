@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const { app } = require("electron");
 const debugLogger = require("./debugLogger");
 const TranslationManager = require("./translationManager");
 
@@ -9,6 +10,8 @@ try {
 } catch (err) {
   debugLogger.warn("onnxruntime-node not available:", err.message);
 }
+
+const { spawn } = require("child_process");
 
 class TranslationInference {
   constructor() {
@@ -24,6 +27,11 @@ class TranslationInference {
     const modelDir = this.manager.getModelPath(modelName);
     const config = require("../models/modelRegistryData.json").translationModels[modelName];
     if (!config) throw new Error(`No config for model: ${modelName}`);
+
+    if (config.usePythonInference) {
+      // For Python-based inference, we don't need to load sessions here
+      return { config };
+    }
 
     const encoderPath = path.join(modelDir, config.files.encoder);
     const decoderPath = path.join(modelDir, config.files.decoder);
@@ -139,17 +147,21 @@ class TranslationInference {
     return text;
   }
 
-  async translate(text, modelName) {
-    if (!ort) {
-      throw new Error("onnxruntime-node is not available");
-    }
-
+  async translate(text, modelName, sourceLang, targetLang) {
     if (!text || text.trim().length === 0) {
       return "";
     }
 
     const session = await this.getSession(modelName);
     const { encoderSession, decoderSession, tokenizer, config } = session;
+
+    if (config.usePythonInference) {
+      return this.translateWithPython(text, modelName, sourceLang, targetLang);
+    }
+
+    if (!ort) {
+      throw new Error("onnxruntime-node is not available");
+    }
 
     const { ids, eosTokenId, padTokenId } = this.tokenize(text, tokenizer);
 
@@ -222,6 +234,58 @@ class TranslationInference {
     });
 
     return outputText;
+  }
+
+  async translateWithPython(text, modelName, sourceLang, targetLang) {
+    return new Promise((resolve, reject) => {
+      // Find the script path - try app path first, then cwd
+      const appPath = app?.getPath?.("appPath") || process.cwd();
+      let scriptPath = path.join(appPath, "scripts", "test_nllb_translation.py");
+      if (!fs.existsSync(scriptPath)) {
+        scriptPath = path.join(process.cwd(), "scripts", "test_nllb_translation.py");
+      }
+      if (!fs.existsSync(scriptPath)) {
+        return reject(new Error(`Python translation script not found at ${scriptPath}`));
+      }
+
+      debugLogger.info(`Calling Python translation: ${sourceLang} -> ${targetLang}`, { text });
+
+      const pythonProcess = spawn("python3", [
+        scriptPath,
+        "--text", text,
+        "--src", sourceLang,
+        "--tgt", targetLang,
+      ]);
+
+      let output = "";
+      let error = "";
+
+      pythonProcess.stdout.on("data", (data) => {
+        output += data.toString();
+      });
+
+      pythonProcess.stderr.on("data", (data) => {
+        error += data.toString();
+      });
+
+      pythonProcess.on("close", (code) => {
+        if (code !== 0) {
+          debugLogger.error(`Python translation failed with code ${code}`, { error });
+          return reject(new Error(`Python translation failed: ${error || "Unknown error"}`));
+        }
+
+        // Script outputs: "Result: <translation> (0.22s)"
+        const resultMatch = output.match(/Result:\s*(.+?)\s*\(\d+\.\d+s\)/);
+        if (resultMatch && resultMatch[1]) {
+          resolve(resultMatch[1].trim());
+        } else {
+          // Fallback: return last non-empty line
+          const lines = output.trim().split("\n").filter((l) => l.trim());
+          const lastLine = lines[lines.length - 1] || "";
+          resolve(lastLine.replace(/Result:\s*/, "").replace(/\s*\(\d+\.\d+s\)\s*$/, "").trim());
+        }
+      });
+    });
   }
 
   clearCache() {

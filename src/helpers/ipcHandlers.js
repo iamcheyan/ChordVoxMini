@@ -800,7 +800,7 @@ class IPCHandlers {
       }
 
       try {
-        const result = await translationInference.translate(text, modelName);
+        const result = await translationInference.translate(text, modelName, sourceLang, targetLang);
         return { success: true, text: result };
       } catch (error) {
         return { success: false, error: error.message };

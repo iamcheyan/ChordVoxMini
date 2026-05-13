@@ -12,7 +12,7 @@ import {
   Shield,
   Command,
   UserCircle,
-} from "lucide-react";
+} from "./ui/Icons";
 import TitleBar from "./TitleBar";
 import PermissionCard from "./ui/PermissionCard";
 import MicPermissionWarning from "./ui/MicPermissionWarning";

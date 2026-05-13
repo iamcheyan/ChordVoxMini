@@ -728,6 +728,30 @@
         "tokenizer": "tokenizer.json",
         "config": "config.json"
       }
+    },
+    "nllb-200-distilled-600M": {
+      "name": "NLLB-200 (600M) Multilingual",
+      "description": "State-of-the-art multilingual model for 200+ languages",
+      "sizeMb": 600,
+      "sourceLang": "multilingual",
+      "targetLang": "multilingual",
+      "isMultilingual": true,
+      "supportedPairs": [
+        ["zh", "ja"],
+        ["ja", "zh"],
+        ["zh", "en"],
+        ["en", "zh"],
+        ["ja", "en"],
+        ["en", "ja"]
+      ],
+      "repoId": "facebook/nllb-200-distilled-600M",
+      "usePythonInference": true,
+      "files": {
+        "encoder": "onnx/encoder_model.onnx",
+        "decoder": "onnx/decoder_model_merged.onnx",
+        "tokenizer": "tokenizer.json",
+        "config": "config.json"
+      }
     }
   }
 }

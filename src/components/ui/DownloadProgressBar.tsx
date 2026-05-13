@@ -1,4 +1,4 @@
-import { Loader2 } from "lucide-react";
+import { Loader2 } from "./Icons";
 import { formatETA, type DownloadProgress } from "../../hooks/useModelDownload";
 interface DownloadProgressBarProps {
   modelName: string;
