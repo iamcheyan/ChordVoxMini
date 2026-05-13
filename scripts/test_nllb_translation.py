@@ -32,14 +32,38 @@ LANG_MAP = {
 def load_model():
     from optimum.onnxruntime import ORTModelForSeq2SeqLM
     from transformers import AutoTokenizer
+    import onnxruntime as ort
 
     if not os.path.exists(MODEL_DIR):
         print(f"[error] model not found: {MODEL_DIR}", file=sys.stderr)
         sys.exit(1)
 
-    tok = AutoTokenizer.from_pretrained(MODEL_DIR)
-    model = ORTModelForSeq2SeqLM.from_pretrained(MODEL_DIR, subfolder="onnx")
-    return tok, model
+    # Detect Apple Silicon and try CoreML
+    providers = ["CPUExecutionProvider"]
+    available_providers = ort.get_available_providers()
+    if "CoreMLExecutionProvider" in available_providers:
+        # CoreML is available
+        providers = ["CoreMLExecutionProvider", "CPUExecutionProvider"]
+
+    print(f"[info] Loading model from {MODEL_DIR} with providers: {providers}", file=sys.stderr)
+    
+    try:
+        tok = AutoTokenizer.from_pretrained(MODEL_DIR)
+        model = ORTModelForSeq2SeqLM.from_pretrained(
+            MODEL_DIR, 
+            subfolder="onnx",
+            provider=providers[0] if len(providers) > 0 else None
+        )
+        return tok, model
+    except Exception as e:
+        print(f"[error] Failed to load model: {e}", file=sys.stderr)
+        # Fallback to CPU if CoreML fails
+        if "CoreML" in str(e):
+            print("[info] CoreML failed, falling back to CPU...", file=sys.stderr)
+            tok = AutoTokenizer.from_pretrained(MODEL_DIR)
+            model = ORTModelForSeq2SeqLM.from_pretrained(MODEL_DIR, subfolder="onnx", provider="CPUExecutionProvider")
+            return tok, model
+        raise e
 
 
 def translate(text, src_lang, tgt_lang, tok, model):
@@ -47,6 +71,7 @@ def translate(text, src_lang, tgt_lang, tok, model):
     tgt_code = LANG_MAP.get(tgt_lang, tgt_lang)
 
     tok.src_lang = src_code
+    # NLLB needs the target language code as the forced BOS token
     forced_bos_token_id = tok.convert_tokens_to_ids(tgt_code)
     inputs = tok(text, return_tensors="pt")
 
@@ -59,22 +84,58 @@ def translate(text, src_lang, tgt_lang, tok, model):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="NLLB-200 translation test")
+    parser = argparse.ArgumentParser(description="NLLB-200 translation service")
     parser.add_argument("--text", type=str, help="text to translate")
-    parser.add_argument("--src", type=str, default="zh", help="source language (zh/ja/en/...)")
-    parser.add_argument("--tgt", type=str, default="ja", help="target language (zh/ja/en/...)")
-    parser.add_argument("--source", type=str, default=None, help="source language alias (for IPC)")
-    parser.add_argument("--target", type=str, default=None, help="target language alias (for IPC)")
+    parser.add_argument("--src", type=str, default="zh", help="source language")
+    parser.add_argument("--tgt", type=str, default="ja", help="target language")
+    parser.add_argument("--source", type=str, default=None, help="source language alias")
+    parser.add_argument("--target", type=str, default=None, help="target language alias")
     parser.add_argument("--interactive", action="store_true", help="interactive mode")
+    parser.add_argument("--listen", action="store_true", help="JSON listening mode for IPC")
     args = parser.parse_args()
 
-    # Support both --src/--tgt and --source/--target (for IPC compatibility)
     src = args.source or args.src
     tgt = args.target or args.tgt
 
     tok, model = load_model()
+    
+    # Signal readiness to the parent process
+    print("[ready] Translation model loaded", file=sys.stderr)
 
-    if args.interactive:
+    if args.listen:
+        import json
+        # Continuous loop for IPC
+        while True:
+            try:
+                line = sys.stdin.readline()
+                if not line:
+                    break
+                
+                data = json.loads(line)
+                text = data.get("text", "").strip()
+                s_lang = data.get("src", src)
+                t_lang = data.get("tgt", tgt)
+                
+                if not text:
+                    print(json.dumps({"success": True, "text": ""}))
+                    sys.stdout.flush()
+                    continue
+                
+                result, elapsed = translate(text, s_lang, t_lang, tok, model)
+                print(json.dumps({
+                    "success": True,
+                    "text": result,
+                    "elapsed": elapsed
+                }))
+                sys.stdout.flush()
+                
+            except json.JSONDecodeError:
+                continue
+            except Exception as e:
+                print(json.dumps({"success": False, "error": str(e)}))
+                sys.stdout.flush()
+
+    elif args.interactive:
         print(f"Interactive mode (q to quit). Default: {src} -> {tgt}")
         while True:
             try:
@@ -83,40 +144,14 @@ def main():
                 break
             if line == "q":
                 break
-            if "2" in line:
-                parts = line.split(" ", 1)
-                lang_part = parts[0]
-                if "2" in lang_part:
-                    src, tgt = lang_part.split("2")
-                    text = parts[1] if len(parts) > 1 else ""
-                    if not text:
-                        print(f"Switched to {src} -> {tgt}")
-                        continue
-                else:
-                    text = line
-            else:
-                text = line
-            if not text:
+            if not line:
                 continue
-            result, elapsed = translate(text, src, tgt, tok, model)
+            result, elapsed = translate(line, src, tgt, tok, model)
             print(f"Result: {result} ({elapsed:.2f}s)")
 
     elif args.text:
         result, elapsed = translate(args.text, src, tgt, tok, model)
         print(f"Result: {result} ({elapsed:.2f}s)")
-
-    else:
-        tests = [
-            ("zh", "ja", "你好"),
-            ("zh", "ja", "今天天气很好"),
-            ("zh", "ja", "我想去日本旅游"),
-            ("ja", "zh", "こんにちは"),
-            ("ja", "zh", "今日はいい天気です"),
-            ("ja", "zh", "ありがとうございます"),
-        ]
-        for s, t, text in tests:
-            result, elapsed = translate(text, s, t, tok, model)
-            print(f"[{s}->{t}] {text} -> {result} ({elapsed:.2f}s)")
 
 
 if __name__ == "__main__":

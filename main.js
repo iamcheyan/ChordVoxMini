@@ -709,6 +709,14 @@ if (gotSingleInstanceLock) {
     if (paraformerManager) {
       paraformerManager.stopServer().catch(() => { });
     }
+    // Stop translation inference workers if running
+    try {
+      const translationInference = require("./src/helpers/translationInference");
+      translationInference.clearCache();
+    } catch (e) {
+      // Ignore cleanup errors
+    }
+
     // Stop llama-server if running
     const modelManager = require("./src/helpers/modelManagerBridge").default;
     modelManager.stopServer().catch(() => { });

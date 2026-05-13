@@ -17,6 +17,7 @@ class TranslationInference {
   constructor() {
     this.sessionCache = new Map();
     this.manager = new TranslationManager();
+    this.pythonWorkers = new Map(); // modelName -> { process, ready, pendingRequests }
   }
 
   async getSession(modelName) {
@@ -29,7 +30,7 @@ class TranslationInference {
     if (!config) throw new Error(`No config for model: ${modelName}`);
 
     if (config.usePythonInference) {
-      // For Python-based inference, we don't need to load sessions here
+      // For Python-based inference, we manage workers separately
       return { config };
     }
 
@@ -40,7 +41,7 @@ class TranslationInference {
       throw new Error(`Model files not found for ${modelName}. Please download the model first.`);
     }
 
-    debugLogger.info(`Loading translation model: ${modelName}`);
+    debugLogger.info(`Loading translation model (Node.js): ${modelName}`);
 
     const encoderSession = await ort.InferenceSession.create(encoderPath, {
       executionProviders: ["cpu"],
@@ -153,18 +154,21 @@ class TranslationInference {
     }
 
     const session = await this.getSession(modelName);
-    const { encoderSession, decoderSession, tokenizer, config } = session;
+    const { config } = session;
 
     if (config.usePythonInference) {
       return this.translateWithPython(text, modelName, sourceLang, targetLang);
     }
 
-    if (!ort) {
-      throw new Error("onnxruntime-node is not available");
-    }
+    // Node.js fallback (existing implementation)
+    return this.translateWithNode(text, session);
+  }
+
+  async translateWithNode(text, session) {
+    const { encoderSession, decoderSession, tokenizer } = session;
+    if (!ort) throw new Error("onnxruntime-node is not available");
 
     const { ids, eosTokenId, padTokenId } = this.tokenize(text, tokenizer);
-
     const maxInputLength = 512;
     const truncatedIds = ids.slice(0, maxInputLength);
 
@@ -217,75 +221,103 @@ class TranslationInference {
 
       const nextTokenId = maxIdx;
       generatedIds.push(nextTokenId);
-
-      if (nextTokenId === eosTokenId || nextTokenId === padTokenId) {
-        break;
-      }
-
+      if (nextTokenId === eosTokenId || nextTokenId === padTokenId) break;
       decoderInputIds = [...decoderInputIds, BigInt(nextTokenId)];
     }
 
-    const outputText = this.detokenize(generatedIds, tokenizer);
+    return this.detokenize(generatedIds, tokenizer);
+  }
 
-    debugLogger.info("Translation complete", {
-      modelName,
-      inputLength: text.length,
-      outputLength: outputText.length,
+  async getPythonWorker(modelName) {
+    if (this.pythonWorkers.has(modelName)) {
+      return this.pythonWorkers.get(modelName);
+    }
+
+    const appPath = app?.getAppPath?.() || process.cwd();
+    let scriptPath = path.join(appPath, "scripts", "test_nllb_translation.py");
+    if (!fs.existsSync(scriptPath)) {
+      scriptPath = path.join(process.cwd(), "scripts", "test_nllb_translation.py");
+    }
+
+    debugLogger.info(`Starting persistent Python translation worker for ${modelName}`);
+
+    const pythonProcess = spawn("python3", [scriptPath, "--listen"]);
+    const worker = {
+      process: pythonProcess,
+      readyPromise: null,
+      pendingRequests: [],
+      currentResponse: "",
+    };
+
+    worker.readyPromise = new Promise((resolve, reject) => {
+      const onData = (data) => {
+        const msg = data.toString();
+        if (msg.includes("[ready]")) {
+          pythonProcess.stderr.off("data", onData);
+          resolve();
+        }
+      };
+      pythonProcess.stderr.on("data", onData);
+      pythonProcess.on("error", reject);
+      
+      // Cleanup on exit
+      pythonProcess.on("exit", () => {
+        debugLogger.warn(`Python translation worker for ${modelName} exited`);
+        this.pythonWorkers.delete(modelName);
+      });
     });
 
-    return outputText;
+    pythonProcess.stdout.on("data", (data) => {
+      worker.currentResponse += data.toString();
+      if (worker.currentResponse.includes("\n")) {
+        const lines = worker.currentResponse.split("\n");
+        // Process all complete lines
+        while (lines.length > 1) {
+          const line = lines.shift().trim();
+          if (line) {
+            try {
+              const result = JSON.parse(line);
+              const nextRequest = worker.pendingRequests.shift();
+              if (nextRequest) nextRequest.resolve(result);
+            } catch (e) {
+              debugLogger.error("Failed to parse Python worker response", { line, error: e.message });
+            }
+          }
+        }
+        worker.currentResponse = lines[0];
+      }
+    });
+
+    pythonProcess.stderr.on("data", (data) => {
+      const msg = data.toString();
+      if (msg.includes("[error]")) debugLogger.error(`Python Worker Error: ${msg}`);
+      else if (msg.includes("[info]")) debugLogger.info(`Python Worker: ${msg}`);
+    });
+
+    this.pythonWorkers.set(modelName, worker);
+    await worker.readyPromise;
+    return worker;
   }
 
   async translateWithPython(text, modelName, sourceLang, targetLang) {
-    return new Promise((resolve, reject) => {
-      // Find the script path - try app path first, then cwd
-      const appPath = app?.getAppPath?.() || process.cwd();
-      let scriptPath = path.join(appPath, "scripts", "test_nllb_translation.py");
-      if (!fs.existsSync(scriptPath)) {
-        scriptPath = path.join(process.cwd(), "scripts", "test_nllb_translation.py");
-      }
-      if (!fs.existsSync(scriptPath)) {
-        return reject(new Error(`Python translation script not found at ${scriptPath}`));
-      }
-
-      debugLogger.info(`Calling Python translation: ${sourceLang} -> ${targetLang}`, { text });
-
-      const pythonProcess = spawn("python3", [
-        scriptPath,
-        "--text", text,
-        "--src", sourceLang,
-        "--tgt", targetLang,
-      ]);
-
-      let output = "";
-      let error = "";
-
-      pythonProcess.stdout.on("data", (data) => {
-        output += data.toString();
+    try {
+      const worker = await this.getPythonWorker(modelName);
+      
+      return new Promise((resolve, reject) => {
+        worker.pendingRequests.push({ resolve, reject });
+        worker.process.stdin.write(JSON.stringify({ text, src: sourceLang, tgt: targetLang }) + "\n");
+      }).then(response => {
+        if (!response.success) throw new Error(response.error || "Translation failed");
+        debugLogger.info(`Translation complete (Python Daemon)`, { 
+          elapsed: response.elapsed,
+          model: modelName 
+        });
+        return response.text;
       });
-
-      pythonProcess.stderr.on("data", (data) => {
-        error += data.toString();
-      });
-
-      pythonProcess.on("close", (code) => {
-        if (code !== 0) {
-          debugLogger.error(`Python translation failed with code ${code}`, { error });
-          return reject(new Error(`Python translation failed: ${error || "Unknown error"}`));
-        }
-
-        // Script outputs: "Result: <translation> (0.22s)"
-        const resultMatch = output.match(/Result:\s*(.+?)\s*\(\d+\.\d+s\)/);
-        if (resultMatch && resultMatch[1]) {
-          resolve(resultMatch[1].trim());
-        } else {
-          // Fallback: return last non-empty line
-          const lines = output.trim().split("\n").filter((l) => l.trim());
-          const lastLine = lines[lines.length - 1] || "";
-          resolve(lastLine.replace(/Result:\s*/, "").replace(/\s*\(\d+\.\d+s\)\s*$/, "").trim());
-        }
-      });
-    });
+    } catch (error) {
+      debugLogger.error("Python translation failed", { error: error.message });
+      throw error;
+    }
   }
 
   clearCache() {
@@ -294,6 +326,11 @@ class TranslationInference {
       if (session.decoderSession) session.decoderSession.release?.();
     }
     this.sessionCache.clear();
+    
+    for (const worker of this.pythonWorkers.values()) {
+      worker.process.kill();
+    }
+    this.pythonWorkers.clear();
   }
 }
 
