@@ -331,7 +331,8 @@
         "failedToRegister": "Failed to register hotkey. Please try again."
       },
       "messages": {
-        "nowUsing": "Now using {{hotkey}} for dictation"
+        "nowUsing": "Now using {{hotkey}} for dictation",
+        "cleared": "Hotkey cleared"
       }
     },
     "modelDownload": {

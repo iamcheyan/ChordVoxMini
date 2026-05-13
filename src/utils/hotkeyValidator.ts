@@ -512,7 +512,7 @@ export function validateHotkey(
   existingHotkeys: string[] = []
 ): ValidationResult {
   if (!hotkey || hotkey.trim() === "") {
-    return { valid: false, error: "Please enter a valid shortcut." };
+    return { valid: true };
   }
 
   if (hotkey === "GLOBE" || hotkey === "Fn") {

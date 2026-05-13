@@ -180,9 +180,9 @@ interface TranscriptionSectionProps {
   cloudTranscriptionMode: string;
   setCloudTranscriptionMode: (mode: string) => void;
   dictationKey: string;
-  registerHotkey: (hotkey: string) => Promise<void>;
+  registerHotkey: (hotkey: string) => Promise<boolean>;
   isHotkeyRegistering: boolean;
-  validateHotkeyForInput: (hotkey: string) => { isValid: boolean; error?: string };
+  validateHotkeyForInput: (hotkey: string) => string | null;
 }
 
 function TranscriptionSection({
@@ -246,9 +246,7 @@ function TranscriptionSection({
             </p>
             <HotkeyInput
               value={dictationKey}
-              onChange={async (newHotkey) => {
-                await registerHotkey(newHotkey);
-              }}
+              onChange={registerHotkey}
               disabled={isHotkeyRegistering}
               validate={validateHotkeyForInput}
             />
@@ -341,16 +339,11 @@ interface AiModelsSectionProps {
   setLocalModelsDir: (dir: string) => void;
   isSignedIn: boolean;
   showAlertDialog: (dialog: { title: string; description: string }) => void;
-  toast: (opts: {
-    title: string;
-    description: string;
-    variant?: "default" | "destructive" | "success";
-    duration?: number;
-  }) => void;
+  toast: ReturnType<typeof useToast>["toast"];
   dictationKeySecondary: string;
-  registerSecondaryHotkey: (hotkey: string) => Promise<void>;
-  isSecondaryHotkeyRegistering: boolean;
-  validateSecondaryHotkeyForInput: (hotkey: string) => { isValid: boolean; error?: string };
+  registerSecondaryHotkey: (hotkey: string) => Promise<boolean>;
+  isSecondaryRegistering: boolean;
+  validateSecondaryHotkeyForInput: (hotkey: string) => string | null;
 }
 
 function AiModelsSection({
@@ -383,7 +376,7 @@ function AiModelsSection({
   toast,
   dictationKeySecondary,
   registerSecondaryHotkey,
-  isSecondaryHotkeyRegistering,
+  isSecondaryRegistering,
   validateSecondaryHotkeyForInput,
 }: AiModelsSectionProps) {
   const { t, i18n } = useTranslation();
@@ -406,10 +399,8 @@ function AiModelsSection({
             </p>
             <HotkeyInput
               value={dictationKeySecondary}
-              onChange={async (newHotkey) => {
-                await registerSecondaryHotkey(newHotkey);
-              }}
-              disabled={isSecondaryHotkeyRegistering}
+              onChange={registerSecondaryHotkey}
+              disabled={isSecondaryRegistering}
               validate={validateSecondaryHotkeyForInput}
             />
           </div>
@@ -472,24 +463,31 @@ const TRANSLATION_LANGUAGES = [
 
 interface TranslationSectionProps {
   dictationKeyTertiary: string;
-  setDictationKeyTertiary: (key: string) => void;
+  registerTertiaryHotkey: (hotkey: string) => Promise<boolean>;
+  isTertiaryRegistering: boolean;
+  validateTertiaryHotkeyForInput: (hotkey: string) => string | null;
   tertiaryHotkeyProfile: { translationSourceLang: string; translationTargetLang: string } | null;
-  setTertiaryHotkeyProfile: (profile: { translationSourceLang: string; translationTargetLang: string } | null) => void;
+  setTertiaryHotkeyProfile: (
+    profile: { translationSourceLang: string; translationTargetLang: string } | null
+  ) => void;
   isUsingGnomeHotkeys: boolean;
   toast: ReturnType<typeof useToast>["toast"];
 }
 
 function TranslationSection({
   dictationKeyTertiary,
-  setDictationKeyTertiary,
+  registerTertiaryHotkey,
+  isTertiaryRegistering,
+  validateTertiaryHotkeyForInput,
   tertiaryHotkeyProfile,
   setTertiaryHotkeyProfile,
   isUsingGnomeHotkeys,
   toast,
 }: TranslationSectionProps) {
   const { t } = useTranslation();
-  const [isTertiaryHotkeyRegistering, setIsTertiaryHotkeyRegistering] = useState(false);
-  const [translationModels, setTranslationModels] = useState<Record<string, { name: string; sizeMb: number; sourceLang: string; targetLang: string }>>({});
+  const [translationModels, setTranslationModels] = useState<
+    Record<string, { name: string; sizeMb: number; sourceLang: string; targetLang: string }>
+  >({});
   const [downloadedModels, setDownloadedModels] = useState<Record<string, boolean>>({});
   const [downloadingModel, setDownloadingModel] = useState<string | null>(null);
   const [downloadProgress, setDownloadProgress] = useState<number>(0);
@@ -557,12 +555,19 @@ function TranslationSection({
           setDownloadingModel(null);
           setDownloadProgress(0);
           cleanup?.();
-          toast({ title: t("settingsPage.translation.downloadComplete"), description: `${modelName} downloaded` });
+          toast({
+            title: t("settingsPage.translation.downloadComplete"),
+            description: `${modelName} downloaded`,
+          });
         } else if (data.type === "error") {
           setDownloadingModel(null);
           setDownloadProgress(0);
           cleanup?.();
-          toast({ title: t("settingsPage.translation.downloadFailed"), description: data.error, variant: "destructive" });
+          toast({
+            title: t("settingsPage.translation.downloadFailed"),
+            description: data.error,
+            variant: "destructive",
+          });
         }
       }
     });
@@ -573,7 +578,11 @@ function TranslationSection({
       setDownloadingModel(null);
       setDownloadProgress(0);
       cleanup?.();
-      toast({ title: t("settingsPage.translation.downloadFailed"), description: error.message, variant: "destructive" });
+      toast({
+        title: t("settingsPage.translation.downloadFailed"),
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 
@@ -581,38 +590,18 @@ function TranslationSection({
     try {
       await window.electronAPI?.deleteTranslationModel?.(modelName);
       setDownloadedModels((prev) => ({ ...prev, [modelName]: false }));
-      toast({ title: t("settingsPage.translation.modelDeleted"), description: `${modelName} deleted` });
+      toast({
+        title: t("settingsPage.translation.modelDeleted"),
+        description: `${modelName} deleted`,
+      });
     } catch (error: any) {
-      toast({ title: t("settingsPage.translation.deleteFailed"), description: error.message, variant: "destructive" });
+      toast({
+        title: t("settingsPage.translation.deleteFailed"),
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
-
-  const validateTertiaryHotkeyForInput = useCallback(
-    (hotkey: string) => {
-      return getValidationMessage(hotkey, getPlatform());
-    },
-    []
-  );
-
-  const registerTertiaryHotkey = useCallback(
-    async (newHotkey: string) => {
-      if (!newHotkey || !newHotkey.trim()) return;
-      setIsTertiaryHotkeyRegistering(true);
-      try {
-        const result = await window.electronAPI?.updateTertiaryHotkey?.(newHotkey);
-        if (result?.success) {
-          setDictationKeyTertiary(newHotkey);
-        } else {
-          toast({ title: t("settingsPage.general.hotkey.registrationFailed"), description: result?.message, variant: "destructive" });
-        }
-      } catch (error: any) {
-        toast({ title: t("settingsPage.general.hotkey.registrationFailed"), description: error.message, variant: "destructive" });
-      } finally {
-        setIsTertiaryHotkeyRegistering(false);
-      }
-    },
-    [setDictationKeyTertiary, toast, t]
-  );
 
   const updateLanguage = useCallback(
     (key: "translationSourceLang" | "translationTargetLang", value: string) => {
@@ -656,10 +645,8 @@ function TranslationSection({
             </p>
             <HotkeyInput
               value={dictationKeyTertiary}
-              onChange={async (newHotkey) => {
-                await registerTertiaryHotkey(newHotkey);
-              }}
-              disabled={isTertiaryHotkeyRegistering}
+              onChange={registerTertiaryHotkey}
+              disabled={isTertiaryRegistering}
               validate={validateTertiaryHotkeyForInput}
             />
           </div>
@@ -933,14 +920,37 @@ export default function SettingsPage({
   useClipboard(showAlertDialog);
   const { theme, setTheme } = useTheme();
 
-  const { registerHotkey, isRegistering: isHotkeyRegistering } = useHotkeyRegistration({
-    onSuccess: (registeredHotkey) => {
-      setDictationKey(registeredHotkey);
-    },
-    showSuccessToast: false,
-    showErrorToast: true,
-    showAlert: showAlertDialog,
-  });
+  const { registerHotkey: registerPrimaryHotkey, isRegistering: isHotkeyRegistering } =
+    useHotkeyRegistration({
+      onSuccess: (registeredHotkey) => {
+        setDictationKey(registeredHotkey);
+      },
+      showSuccessToast: false,
+      showErrorToast: true,
+      showAlert: showAlertDialog,
+    });
+
+  const { registerHotkey: registerSecondaryHotkeyBase, isRegistering: isSecondaryRegistering } =
+    useHotkeyRegistration({
+      registrationFn: window.electronAPI?.updateSecondaryHotkey,
+      onSuccess: (hotkey) => {
+        setDictationKeySecondary(hotkey);
+      },
+      showSuccessToast: true,
+      showErrorToast: true,
+      showAlert: showAlertDialog,
+    });
+
+  const { registerHotkey: registerTertiaryHotkeyBase, isRegistering: isTertiaryRegistering } =
+    useHotkeyRegistration({
+      registrationFn: window.electronAPI?.updateTertiaryHotkey,
+      onSuccess: (hotkey) => {
+        setDictationKeyTertiary(hotkey);
+      },
+      showSuccessToast: true,
+      showErrorToast: true,
+      showAlert: showAlertDialog,
+    });
 
   const validateHotkeyForInput = useCallback(
     (hotkey: string) => getValidationMessage(hotkey, getPlatform()),
@@ -959,9 +969,7 @@ export default function SettingsPage({
         return t("settingsPage.general.hotkey.secondary.globeNotSupported");
       }
 
-      if (
-        /^Right(Control|Ctrl|Alt|Option|Shift|Super|Win|Meta|Command|Cmd)$/i.test(normalized)
-      ) {
+      if (/^Right(Control|Ctrl|Alt|Option|Shift|Super|Win|Meta|Command|Cmd)$/i.test(normalized)) {
         return t("settingsPage.general.hotkey.secondary.rightModifierNotSupported");
       }
 
@@ -980,74 +988,34 @@ export default function SettingsPage({
     [t]
   );
 
-  const [isSecondaryHotkeyRegistering, setIsSecondaryHotkeyRegistering] = useState(false);
-
   const registerSecondaryHotkey = useCallback(
     async (hotkey: string) => {
-      if (!hotkey || !hotkey.trim()) {
-        try {
-          setIsSecondaryHotkeyRegistering(true);
-          await window.electronAPI?.updateSecondaryHotkey?.("");
-          setDictationKeySecondary("");
-          return true;
-        } finally {
-          setIsSecondaryHotkeyRegistering(false);
-        }
-      }
-
-      const validationError = validateSecondaryHotkeyForInput(hotkey);
-      if (validationError) {
+      const error = validateSecondaryHotkeyForInput(hotkey);
+      if (error) {
         showAlertDialog({
           title: t("hooks.hotkeyRegistration.titles.invalidHotkey"),
-          description: validationError,
+          description: error,
         });
         return false;
       }
-
-      if (!window.electronAPI?.updateSecondaryHotkey) {
-        setDictationKeySecondary(hotkey);
-        return true;
-      }
-
-      try {
-        setIsSecondaryHotkeyRegistering(true);
-        const result = await window.electronAPI.updateSecondaryHotkey(hotkey);
-        if (!result?.success) {
-          showAlertDialog({
-            title: t("hooks.hotkeyRegistration.titles.notRegistered"),
-            description:
-              result?.message || t("settingsPage.general.hotkey.secondary.registerFailed"),
-          });
-          return false;
-        }
-
-        setDictationKeySecondary(hotkey);
-        toast({
-          title: t("settingsPage.general.hotkey.secondary.savedTitle"),
-          description: t("settingsPage.general.hotkey.secondary.savedDescription"),
-          variant: "success",
-        });
-        return true;
-      } catch (error) {
-        showAlertDialog({
-          title: t("hooks.hotkeyRegistration.titles.error"),
-          description:
-            error instanceof Error
-              ? error.message
-              : t("settingsPage.general.hotkey.secondary.registerRetry"),
-        });
-        return false;
-      } finally {
-        setIsSecondaryHotkeyRegistering(false);
-      }
+      return await registerSecondaryHotkeyBase(hotkey);
     },
-    [
-      setDictationKeySecondary,
-      showAlertDialog,
-      t,
-      toast,
-      validateSecondaryHotkeyForInput,
-    ]
+    [registerSecondaryHotkeyBase, validateSecondaryHotkeyForInput, showAlertDialog, t]
+  );
+
+  const registerTertiaryHotkey = useCallback(
+    async (hotkey: string) => {
+      const error = validateSecondaryHotkeyForInput(hotkey); // Same rules apply to tertiary
+      if (error) {
+        showAlertDialog({
+          title: t("hooks.hotkeyRegistration.titles.invalidHotkey"),
+          description: error,
+        });
+        return false;
+      }
+      return await registerTertiaryHotkeyBase(hotkey);
+    },
+    [registerTertiaryHotkeyBase, validateSecondaryHotkeyForInput, showAlertDialog, t]
   );
 
   const saveCurrentAsSecondaryProfile = useCallback(() => {
@@ -1658,7 +1626,7 @@ export default function SettingsPage({
             setCloudTranscriptionBaseUrl={setCloudTranscriptionBaseUrl}
             toast={toast}
             dictationKey={dictationKey}
-            registerHotkey={registerHotkey}
+            registerHotkey={registerPrimaryHotkey}
             isHotkeyRegistering={isHotkeyRegistering}
             validateHotkeyForInput={validateHotkeyForInput}
           />
@@ -1807,7 +1775,9 @@ export default function SettingsPage({
           <div className="space-y-6">
             <TranslationSection
               dictationKeyTertiary={dictationKeyTertiary}
-              setDictationKeyTertiary={setDictationKeyTertiary}
+              registerTertiaryHotkey={registerTertiaryHotkey}
+              isTertiaryRegistering={isTertiaryRegistering}
+              validateTertiaryHotkeyForInput={validateSecondaryHotkeyForInput}
               tertiaryHotkeyProfile={tertiaryHotkeyProfile}
               setTertiaryHotkeyProfile={setTertiaryHotkeyProfile}
               isUsingGnomeHotkeys={isUsingGnomeHotkeys}

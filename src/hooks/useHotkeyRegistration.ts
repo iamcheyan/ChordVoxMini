@@ -29,6 +29,12 @@ export interface UseHotkeyRegistrationOptions {
    * Custom toast/alert function for showing messages
    */
   showAlert?: (options: { title: string; description: string }) => void;
+
+  /**
+   * Custom registration function (e.g. for secondary/tertiary hotkeys)
+   * Defaults to window.electronAPI.updateHotkey
+   */
+  registrationFn?: (hotkey: string) => Promise<{ success: boolean; message?: string }>;
 }
 
 export interface UseHotkeyRegistrationResult {
@@ -70,7 +76,14 @@ export function useHotkeyRegistration(
   options: UseHotkeyRegistrationOptions = {}
 ): UseHotkeyRegistrationResult {
   const { t } = useTranslation();
-  const { onSuccess, onError, showSuccessToast = true, showErrorToast = true, showAlert } = options;
+  const {
+    onSuccess,
+    onError,
+    showSuccessToast = true,
+    showErrorToast = true,
+    showAlert,
+    registrationFn: customRegistrationFn,
+  } = options;
 
   const [isRegistering, setIsRegistering] = useState(false);
   const [lastError, setLastError] = useState<string | null>(null);
@@ -89,39 +102,31 @@ export function useHotkeyRegistration(
         return false;
       }
 
-      // Validate hotkey format
-      if (!hotkey || hotkey.trim() === "") {
-        const errorMsg = t("hooks.hotkeyRegistration.errors.enterValidHotkey");
-        setLastError(errorMsg);
-        if (showErrorToast && showAlert) {
-          showAlert({
-            title: t("hooks.hotkeyRegistration.titles.invalidHotkey"),
-            description: errorMsg,
-          });
+      const isClearing = !hotkey || hotkey.trim() === "";
+
+      // Validate hotkey format if not clearing
+      if (!isClearing) {
+        const platform = getPlatform();
+        const validation = validateHotkey(hotkey, platform);
+        if (!validation.valid) {
+          const errorMsg =
+            validation.error || t("hooks.hotkeyRegistration.errors.unsupportedShortcut");
+          setLastError(errorMsg);
+          if (showErrorToast && showAlert) {
+            showAlert({
+              title: t("hooks.hotkeyRegistration.titles.invalidHotkey"),
+              description: errorMsg,
+            });
+          }
+          onError?.(errorMsg, hotkey);
+          return false;
         }
-        onError?.(errorMsg, hotkey);
-        return false;
       }
 
-      const platform = getPlatform();
-      const validation = validateHotkey(hotkey, platform);
-      if (!validation.valid) {
-        const errorMsg =
-          validation.error || t("hooks.hotkeyRegistration.errors.unsupportedShortcut");
-        setLastError(errorMsg);
-        if (showErrorToast && showAlert) {
-          showAlert({
-            title: t("hooks.hotkeyRegistration.titles.invalidHotkey"),
-            description: errorMsg,
-          });
-        }
-        onError?.(errorMsg, hotkey);
-        return false;
-      }
-
-      // Check if Electron API is available
-      if (!window.electronAPI?.updateHotkey) {
-        // In non-Electron environment, just succeed silently
+      // Check if registration function is available
+      const updateFn = customRegistrationFn || window.electronAPI?.updateHotkey;
+      if (!updateFn) {
+        // In non-Electron environment or if API missing, just succeed silently
         onSuccess?.(hotkey);
         return true;
       }
@@ -131,7 +136,7 @@ export function useHotkeyRegistration(
         setIsRegistering(true);
         setLastError(null);
 
-        const result = await window.electronAPI.updateHotkey(hotkey);
+        const result = await updateFn(hotkey);
 
         if (!result?.success) {
           // Use the detailed error message from the manager, which includes suggestions
@@ -151,11 +156,18 @@ export function useHotkeyRegistration(
 
         // Success!
         if (showSuccessToast && showAlert) {
-          const displayLabel = formatHotkeyLabel(hotkey);
-          showAlert({
-            title: t("hooks.hotkeyRegistration.titles.saved"),
-            description: t("hooks.hotkeyRegistration.messages.nowUsing", { hotkey: displayLabel }),
-          });
+          if (isClearing) {
+            showAlert({
+              title: t("hooks.hotkeyRegistration.titles.saved"),
+              description: t("hooks.hotkeyRegistration.messages.cleared"),
+            });
+          } else {
+            const displayLabel = formatHotkeyLabel(hotkey);
+            showAlert({
+              title: t("hooks.hotkeyRegistration.titles.saved"),
+              description: t("hooks.hotkeyRegistration.messages.nowUsing", { hotkey: displayLabel }),
+            });
+          }
         }
 
         onSuccess?.(hotkey);
@@ -181,7 +193,7 @@ export function useHotkeyRegistration(
         registrationInFlightRef.current = false;
       }
     },
-    [onSuccess, onError, showSuccessToast, showErrorToast, showAlert, t]
+    [onSuccess, onError, showSuccessToast, showErrorToast, showAlert, customRegistrationFn, t]
   );
 
   return {

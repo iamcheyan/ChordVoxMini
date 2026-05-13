@@ -331,7 +331,8 @@
         "failedToRegister": "注册快捷键失败，请重试。"
       },
       "messages": {
-        "nowUsing": "现在使用 {{hotkey}} 进行听写"
+        "nowUsing": "现在使用 {{hotkey}} 进行听写",
+        "cleared": "快捷键已清除"
       }
     },
     "modelDownload": {
