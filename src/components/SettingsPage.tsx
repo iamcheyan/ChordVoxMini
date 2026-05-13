@@ -630,7 +630,11 @@ function TranslationSection({
     setIsTesting(true);
     try {
       const result = await window.electronAPI?.translateText?.(testInput, sourceLang, targetLang);
-      setTestOutput(result || "");
+      if (result?.success) {
+        setTestOutput(result.text || "");
+      } else {
+        setTestOutput(result?.error ? `Error: ${result.error}` : "");
+      }
     } catch (error: any) {
       toast({ title: t("settingsPage.translation.testFailed", "Test Failed"), description: error.message, variant: "destructive" });
     } finally {

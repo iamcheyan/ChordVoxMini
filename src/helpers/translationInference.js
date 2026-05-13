@@ -239,7 +239,7 @@ class TranslationInference {
   async translateWithPython(text, modelName, sourceLang, targetLang) {
     return new Promise((resolve, reject) => {
       // Find the script path - try app path first, then cwd
-      const appPath = app?.getPath?.("appPath") || process.cwd();
+      const appPath = app?.getAppPath?.() || process.cwd();
       let scriptPath = path.join(appPath, "scripts", "test_nllb_translation.py");
       if (!fs.existsSync(scriptPath)) {
         scriptPath = path.join(process.cwd(), "scripts", "test_nllb_translation.py");

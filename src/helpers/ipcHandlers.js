@@ -794,7 +794,22 @@ class IPCHandlers {
         return { success: false, error: `No translation model found for ${sourceLang} → ${targetLang}` };
       }
 
-      const modelName = models[0];
+      // Priority mapping to match UI preference
+      const preferredModels = {
+        "zh-ja": "nllb-200-distilled-600M",
+        "ja-zh": "nllb-200-distilled-600M",
+        "en-ja": "opus-mt-en-jap",
+        "ja-en": "opus-mt-ja-en",
+        "zh-en": "opus-mt-zh-en",
+        "en-zh": "opus-mt-en-zh",
+      };
+
+      const key = `${sourceLang}-${targetLang}`;
+      const preferredModel = preferredModels[key];
+
+      // Use preferred model if it matches, otherwise fallback to the first match
+      const modelName = (preferredModel && models.includes(preferredModel)) ? preferredModel : models[0];
+
       if (!manager.isModelDownloaded(modelName)) {
         return { success: false, error: `Translation model not downloaded: ${modelName}` };
       }
