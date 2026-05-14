@@ -309,6 +309,11 @@ class ParakeetManager {
 
     await fsPromises.mkdir(modelsDir, { recursive: true });
 
+    if (this.currentDownloadProcess) {
+      debugLogger.warn("Parakeet model download already in progress", { model: modelName });
+      return { success: false, error: "Download already in progress" };
+    }
+
     if (this.serverManager.isModelDownloaded(modelName)) {
       return { model: modelName, downloaded: true, path: modelPath, success: true };
     }

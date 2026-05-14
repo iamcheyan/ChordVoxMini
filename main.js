@@ -3,7 +3,7 @@ const path = require("path");
 require("dotenv").config({ path: path.join(__dirname, ".env") });
 
 const VALID_CHANNELS = new Set(["development", "staging", "production"]);
-const BASE_WINDOWS_APP_ID = "com.gravitypoet.chordvox";
+const BASE_WINDOWS_APP_ID = "com.gravitypoet.chordvoxmini";
 
 function isElectronBinaryExec() {
   const execPath = (process.execPath || "").toLowerCase();
@@ -41,7 +41,7 @@ function configureChannelUserDataPath() {
     return;
   }
 
-  const isolatedPath = path.join(app.getPath("appData"), `ChordVox-${APP_CHANNEL}`);
+  const isolatedPath = path.join(app.getPath("appData"), `ChordVoxMini-${APP_CHANNEL}`);
   app.setPath("userData", isolatedPath);
 }
 
@@ -81,8 +81,8 @@ if (!gotSingleInstanceLock) {
 const isLiveWindow = (window) => window && !window.isDestroyed();
 
 // Ensure macOS menus use the proper casing for the app name
-if (process.platform === "darwin" && app.getName() !== "ChordVox") {
-  app.setName("ChordVox");
+if (process.platform === "darwin" && app.getName() !== "ChordVoxMini") {
+  app.setName("ChordVoxMini");
 }
 
 // Add global error handling for uncaught exceptions

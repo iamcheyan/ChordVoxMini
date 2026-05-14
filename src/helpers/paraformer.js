@@ -154,7 +154,7 @@ class ParaformerManager {
 
   getBinDir() {
     const homeDir = os.homedir();
-    return path.join(homeDir, ".cache", "chordvox", "bin");
+    return path.join(homeDir, ".cache", "chordvoxmini", "bin");
   }
 
   _getSherpaReleaseInfo() {
@@ -276,6 +276,11 @@ class ParaformerManager {
     if (ensureExecutable(outputPath)) {
       debugLogger.info("Paraformer binary already installed", { path: outputPath });
       return { success: true, path: outputPath };
+    }
+
+    if (this.currentBinaryDownload) {
+      debugLogger.warn("Paraformer binary download already in progress");
+      return { success: false, error: "Download already in progress" };
     }
 
     const url = `${SHERPA_ONNX_RELEASE_URL}/${releaseInfo.archiveName}`;
@@ -597,6 +602,11 @@ class ParaformerManager {
     const modelsDir = this.getModelsDir();
 
     await fsPromises.mkdir(modelsDir, { recursive: true });
+
+    if (this.currentDownloadProcess) {
+      debugLogger.warn("Paraformer model download already in progress", { model: modelName });
+      return { success: false, error: "Download already in progress" };
+    }
 
     if (this._isModelDirectoryValid(modelDir)) {
       const modelOnnxPath = path.join(modelDir, "model.onnx");

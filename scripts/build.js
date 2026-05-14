@@ -45,7 +45,14 @@ async function main() {
     runCommand('npm', ['install']);
   }
 
-  // 2. Detect platform
+  // 2. Clean previous builds
+  log('Cleaning previous build artifacts...', 'info');
+  const distPath = path.join(projectRoot, 'dist');
+  const srcDistPath = path.join(projectRoot, 'src', 'dist');
+  if (fs.existsSync(distPath)) fs.rmSync(distPath, { recursive: true, force: true });
+  if (fs.existsSync(srcDistPath)) fs.rmSync(srcDistPath, { recursive: true, force: true });
+
+  // 3. Detect platform
   const platform = process.platform;
   let buildScript = '';
 
@@ -63,16 +70,16 @@ async function main() {
     process.exit(1);
   }
 
-  // 3. Run the build command
+  // 4. Run the build command
   // Note: This triggers the 'prebuild:...' scripts in package.json automatically
   log(`Executing build command: npm run ${buildScript}`, 'info');
   runCommand('npm', ['run', buildScript]);
 
-  // 4. Success message
-  const distPath = path.join(projectRoot, 'dist');
+  // 5. Success message
+  const finalDistPath = path.join(projectRoot, 'dist');
   log('\n' + '='.repeat(50), 'success');
   log('BUILD SUCCESSFUL!', 'success');
-  log(`Output files are located in: ${distPath}`, 'success');
+  log(`Output files are located in: ${finalDistPath}`, 'success');
   log('='.repeat(50) + '\n', 'success');
 
   if (platform === 'darwin') {

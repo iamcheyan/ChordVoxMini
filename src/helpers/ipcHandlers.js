@@ -785,6 +785,9 @@ class IPCHandlers {
     });
 
     ipcMain.handle("translate-text", async (_event, text, sourceLang, targetLang) => {
+      if (!this.windowManager.translationEnabled) {
+        return { success: false, error: "Translation feature is disabled in settings" };
+      }
       const translationInference = require("./translationInference");
       const TranslationManager = require("./translationManager");
       const manager = new TranslationManager();
@@ -820,6 +823,15 @@ class IPCHandlers {
       } catch (error) {
         return { success: false, error: error.message };
       }
+    });
+
+    ipcMain.handle("set-translation-enabled", async (event, enabled) => {
+      this.windowManager.setTranslationEnabled(enabled);
+      if (!enabled) {
+        const translationInference = require("./translationInference");
+        translationInference.clearCache();
+      }
+      return { success: true };
     });
 
     ipcMain.handle("list-translation-models", async () => {

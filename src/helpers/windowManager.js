@@ -31,6 +31,7 @@ class WindowManager {
     this.tertiaryHotkeyAccelerator = null;
     this._cachedActivationMode = "tap";
     this._floatingIconAutoHide = false;
+    this.translationEnabled = true;
 
     app.on("before-quit", () => {
       this.isQuitting = true;
@@ -444,6 +445,12 @@ class WindowManager {
     if (!this.mainWindow || this.mainWindow.isDestroyed()) return;
 
     try {
+      const isTranslationEnabled = await this.mainWindow.webContents.executeJavaScript(
+        `localStorage.getItem("isTranslationEnabled") !== "false"`
+      );
+      this.translationEnabled = Boolean(isTranslationEnabled);
+      if (!this.translationEnabled) return;
+
       const tertiaryHotkey = await this.mainWindow.webContents.executeJavaScript(
         `localStorage.getItem("dictationKeyTertiary") || ""`
       );
@@ -467,6 +474,10 @@ class WindowManager {
   }
 
   async updateTertiaryHotkey(hotkey) {
+    if (!this.translationEnabled) {
+      this.tertiaryHotkey = typeof hotkey === "string" ? hotkey.trim() : "";
+      return { success: true, message: "Translation disabled, hotkey saved but not registered" };
+    }
     const normalizedHotkey = typeof hotkey === "string" ? hotkey.trim() : "";
     const previousHotkey = this.tertiaryHotkey;
     const previousAccelerator = this.tertiaryHotkeyAccelerator;
@@ -520,6 +531,15 @@ class WindowManager {
     this.tertiaryHotkey = normalizedHotkey;
     this.tertiaryHotkeyAccelerator = accelerator;
     return { success: true, message: `Tertiary hotkey updated to: ${normalizedHotkey}` };
+  }
+
+  setTranslationEnabled(enabled) {
+    this.translationEnabled = Boolean(enabled);
+    if (!enabled) {
+      this.unregisterTertiaryHotkey();
+    } else if (this.tertiaryHotkey) {
+      this.updateTertiaryHotkey(this.tertiaryHotkey);
+    }
   }
 
   async unregisterSecondaryHotkey() {

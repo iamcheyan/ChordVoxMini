@@ -1,10 +1,10 @@
 {
-  "appId": "com.gravitypoet.chordvox",
-  "productName": "ChordVox",
+  "appId": "com.gravitypoet.chordvoxmini",
+  "productName": "ChordVoxMini",
   "protocols": {
-    "name": "ChordVox Protocol",
+    "name": "ChordVoxMini Protocol",
     "schemes": [
-      "chordvox"
+      "chordvoxmini"
     ]
   },
   "directories": {
@@ -117,8 +117,8 @@
     "notarize": true,
     "extendInfo": {
       "LSUIElement": false,
-      "NSMicrophoneUsageDescription": "ChordVox needs microphone access for speech-to-text transcription.",
-      "NSAccessibilityUsageDescription": "ChordVox needs accessibility permissions to paste transcribed text into other applications."
+      "NSMicrophoneUsageDescription": "ChordVoxMini needs microphone access for speech-to-text transcription.",
+      "NSAccessibilityUsageDescription": "ChordVoxMini needs accessibility permissions to paste transcribed text into other applications."
     }
   },
   "win": {
@@ -193,7 +193,7 @@
     "include": "resources/nsis/cleanup-models.nsh"
   },
   "dmg": {
-    "title": "ChordVox",
+    "title": "ChordVoxMini",
     "icon": "src/assets/icon.png",
     "background": "src/assets/dmg-background.png",
     "window": {

@@ -247,6 +247,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
   deleteTranslationModel: (modelName) => ipcRenderer.invoke("delete-translation-model", modelName),
   translateText: (text, sourceLang, targetLang) => ipcRenderer.invoke("translate-text", text, sourceLang, targetLang),
   listTranslationModels: () => ipcRenderer.invoke("list-translation-models"),
+  setTranslationEnabled: (enabled) => ipcRenderer.invoke("set-translation-enabled", enabled),
 
   // Anthropic reasoning
   processAnthropicReasoning: (text, modelId, config) =>

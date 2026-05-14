@@ -35,6 +35,7 @@ export interface TranscriptionSettings {
   customDictionary: string[];
   assemblyAiStreaming: boolean;
   localModelsDir?: string;
+  isTranslationEnabled: boolean;
 }
 
 export interface ReasoningSettings {
@@ -501,6 +502,11 @@ function useSettingsInternal() {
     }
   );
 
+  const [isTranslationEnabled, setIsTranslationEnabledLocal] = useLocalStorage("isTranslationEnabled", true, {
+    serialize: String,
+    deserialize: (value) => value !== "false",
+  });
+
   // Sync API keys from main process on first mount (if localStorage was cleared)
   const hasRunApiKeySync = useRef(false);
   useEffect(() => {
@@ -717,6 +723,18 @@ function useSettingsInternal() {
       }
     },
     [setDictationKeyTertiaryLocal]
+  );
+
+  const setTranslationEnabled = useCallback(
+    (value: boolean) => {
+      setIsTranslationEnabledLocal(value);
+      if (typeof window !== "undefined" && window.electronAPI?.setTranslationEnabled) {
+        window.electronAPI.setTranslationEnabled(value).catch((err) => {
+          logger.warn("Failed to notify translation toggle", { error: err.message });
+        });
+      }
+    },
+    [setIsTranslationEnabledLocal]
   );
 
   const [tertiaryHotkeyProfile, setTertiaryHotkeyProfileRaw] = useLocalStorage<
@@ -1036,10 +1054,13 @@ function useSettingsInternal() {
       if (settings.cloudTranscriptionBaseUrl !== undefined)
         setCloudTranscriptionBaseUrl(settings.cloudTranscriptionBaseUrl);
       if (settings.customDictionary !== undefined) setCustomDictionary(settings.customDictionary);
+      if (settings.isTranslationEnabled !== undefined) setTranslationEnabled(settings.isTranslationEnabled);
     },
     [
       setUseLocalWhisper,
-      setUiLanguage,
+      isTranslationEnabled,
+    setTranslationEnabled,
+    setUiLanguage,
       setWhisperModel,
       setLocalTranscriptionProvider,
       setParakeetModel,
@@ -1204,6 +1225,8 @@ function useSettingsInternal() {
     updateTranscriptionSettings,
     updateReasoningSettings,
     updateApiKeys,
+    isTranslationEnabled,
+    setTranslationEnabled,
   };
 }
 

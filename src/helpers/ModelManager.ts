@@ -50,7 +50,7 @@ class ModelManager {
       return path.join(customRoot, "models");
     }
     const homeDir = app.getPath("home");
-    return path.join(homeDir, ".cache", "chordvox", "models");
+    return path.join(homeDir, ".cache", "chordvoxmini", "models");
   }
 
   async ensureModelsDir(): Promise<void> {

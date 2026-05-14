@@ -347,6 +347,11 @@ class SenseVoiceManager {
     const modelsDir = this.getModelsDir();
 
     await fsPromises.mkdir(modelsDir, { recursive: true });
+    
+    if (this.currentDownloadProcess) {
+      debugLogger.warn("SenseVoice model download already in progress", { model: modelName });
+      return { success: false, error: "Download already in progress" };
+    }
 
     if (fs.existsSync(modelPath)) {
       const stats = await fsPromises.stat(modelPath);

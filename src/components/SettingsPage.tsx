@@ -462,6 +462,8 @@ const TRANSLATION_LANGUAGES = [
 ];
 
 interface TranslationSectionProps {
+  isTranslationEnabled: boolean;
+  setTranslationEnabled: (value: boolean) => void;
   dictationKeyTertiary: string;
   registerTertiaryHotkey: (hotkey: string) => Promise<boolean>;
   isTertiaryRegistering: boolean;
@@ -475,6 +477,8 @@ interface TranslationSectionProps {
 }
 
 function TranslationSection({
+  isTranslationEnabled,
+  setTranslationEnabled,
   dictationKeyTertiary,
   registerTertiaryHotkey,
   isTertiaryRegistering,
@@ -637,7 +641,20 @@ function TranslationSection({
         title={t("settingsPage.translation.title", "Hotkey 3 (Translation)")}
         description={t("settingsPage.translation.description", "Offline translation using ONNX models. Speak in one language and get translated text.")}
       />
+
       <SettingsPanel>
+        <SettingsPanelRow>
+          <SettingsRow
+            label={t("settingsPage.translation.enableToggle", "Enable Translation")}
+            description={t("settingsPage.translation.enableToggleDescription", "Toggle all translation features on/off including hotkeys and background services.")}
+          >
+            <Toggle checked={isTranslationEnabled} onChange={setTranslationEnabled} />
+          </SettingsRow>
+        </SettingsPanelRow>
+      </SettingsPanel>
+
+      {isTranslationEnabled && (
+        <SettingsPanel>
         <SettingsPanelRow>
           <div className="space-y-2">
             <p className="text-[11px] font-medium text-muted-foreground/80">
@@ -741,9 +758,11 @@ function TranslationSection({
           </SettingsPanelRow>
         )}
       </SettingsPanel>
+      )}
 
       {/* Translation Test Tool */}
-      <div>
+      {isTranslationEnabled && (
+        <div>
         <SectionHeader
           title={t("settingsPage.translation.testTitle")}
           description={t("settingsPage.translation.testDescription")}
@@ -799,6 +818,7 @@ function TranslationSection({
           </SettingsPanelRow>
         </SettingsPanel>
       </div>
+      )}
     </div>
   );
 }
@@ -873,6 +893,8 @@ export default function SettingsPage({
     setGeminiApiKey,
     setGroqApiKey,
     setMistralApiKey,
+    isTranslationEnabled,
+    setTranslationEnabled,
     customTranscriptionApiKey,
     setCustomTranscriptionApiKey,
     customReasoningApiKey,
@@ -1774,6 +1796,8 @@ export default function SettingsPage({
         return (
           <div className="space-y-6">
             <TranslationSection
+              isTranslationEnabled={isTranslationEnabled}
+              setTranslationEnabled={setTranslationEnabled}
               dictationKeyTertiary={dictationKeyTertiary}
               registerTertiaryHotkey={registerTertiaryHotkey}
               isTertiaryRegistering={isTertiaryRegistering}

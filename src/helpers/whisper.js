@@ -417,6 +417,11 @@ class WhisperManager {
 
     await fsPromises.mkdir(modelsDir, { recursive: true });
 
+    if (this.currentDownloadProcess) {
+      debugLogger.warn("Whisper model download already in progress", { model: modelName });
+      return { success: false, error: "Download already in progress" };
+    }
+
     if (fs.existsSync(modelPath)) {
       const stats = await fsPromises.stat(modelPath);
       return {
