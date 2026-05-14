@@ -140,8 +140,8 @@
       "sizeMb": 824,
       "language": "zh/en",
       "recommended": true,
-      "downloadUrl": "https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-paraformer-zh-large-2023-09-01.tar.bz2",
-      "extractDir": "sherpa-onnx-paraformer-zh-large-2023-09-01"
+      "downloadUrl": "https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-paraformer-zh-2025-10-07.tar.bz2",
+      "extractDir": "sherpa-onnx-paraformer-zh-2025-10-07"
     }
   },
   "whisperModels": {
