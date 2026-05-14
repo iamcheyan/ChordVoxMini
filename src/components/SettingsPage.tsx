@@ -6,7 +6,7 @@ import {
   Download,
   Upload,
   Command,
-  MicIcon,
+  Mic,
   SparklesIcon,
   Shield,
   FolderOpen,

@@ -7,7 +7,7 @@ import {
   HistoryIcon,
   SettingsIcon,
   Trash2Icon,
-  MicIcon,
+  Mic,
   FileTextIcon,
   Loader2,
 } from "./ui/Icons";

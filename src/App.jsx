@@ -2,8 +2,8 @@ import React, { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import "./index.css";
 import {
-  MicIcon,
-  XIcon,
+  Mic,
+  X,
   CheckIcon,
 } from "./components/ui/Icons";
 import { useToast } from "./components/ui/Toast";
@@ -398,7 +398,7 @@ export default function App() {
 
               {/* Dynamic content based on state */}
               {micState === "idle" || micState === "hover" ? (
-                <MicIcon size={micState === "idle" ? 14 : 16} />
+                <Mic size={micState === "idle" ? 14 : 16} />
               ) : micState === "recording" ? (
                 <LoadingDots />
               ) : micState === "processing" ? (
