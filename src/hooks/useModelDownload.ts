@@ -73,7 +73,7 @@ export function useModelDownload({
   const isCancellingRef = useRef(false);
   const lastProgressUpdateRef = useRef(0);
 
-  const { showAlertDialog } = useDialogs();
+  const { showAlertDialog, alertDialog, hideAlertDialog } = useDialogs();
   const { toast } = useToast();
   const showAlertDialogRef = useRef(showAlertDialog);
   const onDownloadCompleteRef = useRef(onDownloadComplete);
@@ -243,6 +243,7 @@ export function useModelDownload({
           }
         } else if (modelType === "paraformer") {
           const result = await window.electronAPI?.downloadParaformerModel(modelId);
+          console.error("[useModelDownload] paraformer download result:", result);
           if (!result?.success && !result?.error?.includes("interrupted by user")) {
             const msg = getDownloadErrorMessage(
               t,
@@ -288,6 +289,7 @@ export function useModelDownload({
       } catch (error: unknown) {
         if (isCancellingRef.current) return;
 
+        console.error("[useModelDownload] download failed:", error);
         const errorMessage = error instanceof Error ? error.message : String(error);
         if (
           !errorMessage.includes("interrupted by user") &&
@@ -422,5 +424,7 @@ export function useModelDownload({
     deleteModel,
     cancelDownload,
     formatETA,
+    alertDialog,
+    hideAlertDialog,
   };
 }

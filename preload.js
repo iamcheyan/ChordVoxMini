@@ -126,6 +126,10 @@ contextBridge.exposeInMainWorld("electronAPI", {
   pickSenseVoiceModelFile: (defaultPath) =>
     ipcRenderer.invoke("pick-sensevoice-model-file", defaultPath),
   pickSenseVoiceBinary: (defaultPath) => ipcRenderer.invoke("pick-sensevoice-binary", defaultPath),
+  checkSenseVoiceBinaryStatus: () => ipcRenderer.invoke("check-sensevoice-binary-status"),
+  downloadSenseVoiceBinary: () => ipcRenderer.invoke("download-sensevoice-binary"),
+  onSenseVoiceBinaryDownloadProgress: registerListener("sensevoice-binary-download-progress"),
+  cancelSenseVoiceBinaryDownload: () => ipcRenderer.invoke("cancel-sensevoice-binary-download"),
 
   // Local Paraformer (external CLI + local ONNX model)
   transcribeLocalParaformer: (audioBlob, options) =>

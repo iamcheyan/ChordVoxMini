@@ -196,6 +196,132 @@ class SenseVoiceManager {
     );
   }
 
+  checkBinaryStatus() {
+    try {
+      const resolved = this._resolveBinaryPath();
+      return { installed: true, path: resolved };
+    } catch {
+      return { installed: false, path: "" };
+    }
+  }
+
+  async downloadBinary(progressCallback) {
+    const binaryName = this._getBinaryName();
+    const binDir = this.getBinDir();
+    await fsPromises.mkdir(binDir, { recursive: true });
+
+    const outputPath = path.join(binDir, binaryName);
+
+    // Check if already installed
+    if (ensureExecutable(outputPath)) {
+      debugLogger.info("SenseVoice binary already installed", { path: outputPath });
+      return { success: true, path: outputPath };
+    }
+
+    if (this.currentBinaryDownload) {
+      debugLogger.warn("SenseVoice binary download already in progress");
+      return { success: false, error: "Download already in progress" };
+    }
+
+    const tmpDir = path.join(getSafeTempDir(), `sensevoice-build-${Date.now()}`);
+    const repoDir = path.join(tmpDir, "SenseVoice.cpp");
+
+    try {
+      // Check build prerequisites
+      const { execSync } = require("child_process");
+      let hasCmake = false;
+      let hasMake = false;
+      try { execSync("cmake --version", { stdio: "ignore" }); hasCmake = true; } catch {}
+      try { execSync("make --version", { stdio: "ignore" }); hasMake = true; } catch {}
+      if (!hasCmake) {
+        throw new Error("cmake 未安装。请先安装 cmake：brew install cmake (macOS) 或 apt install cmake (Linux)");
+      }
+      if (!hasMake) {
+        throw new Error("make 未安装。请先安装 build 工具：xcode-select --install (macOS) 或 apt install build-essential (Linux)");
+      }
+
+      // Progress: cloning
+      if (progressCallback) {
+        progressCallback({ type: "clone", percentage: 5, message: "正在克隆 SenseVoice.cpp 仓库..." });
+      }
+
+      await fsPromises.mkdir(tmpDir, { recursive: true });
+      execSync(
+        `git clone --recursive https://github.com/lovemefan/SenseVoice.cpp "${repoDir}"`,
+        { timeout: 300000, stdio: "pipe" }
+      );
+
+      // Progress: building
+      if (progressCallback) {
+        progressCallback({ type: "build", percentage: 40, message: "正在编译 SenseVoice.cpp..." });
+      }
+
+      const buildDir = path.join(repoDir, "build");
+      await fsPromises.mkdir(buildDir, { recursive: true });
+      execSync(
+        `cmake -DCMAKE_BUILD_TYPE=Release ..`,
+        { cwd: buildDir, timeout: 120000, stdio: "pipe" }
+      );
+
+      const cpuCount = require("os").cpus().length;
+      execSync(
+        `make -j${Math.min(cpuCount, 8)}`,
+        { cwd: buildDir, timeout: 600000, stdio: "pipe" }
+      );
+
+      // Progress: installing
+      if (progressCallback) {
+        progressCallback({ type: "install", percentage: 90, message: "正在安装二进制文件..." });
+      }
+
+      // Find the compiled binary
+      const compiledBinary = path.join(buildDir, "bin", binaryName);
+      if (!fs.existsSync(compiledBinary)) {
+        throw new Error(`编译后的二进制文件未找到: ${compiledBinary}`);
+      }
+
+      fs.copyFileSync(compiledBinary, outputPath);
+      fs.chmodSync(outputPath, 0o755);
+
+      // Progress: complete
+      if (progressCallback) {
+        progressCallback({ type: "complete", percentage: 100 });
+      }
+
+      // Clear cached path so next resolve picks up the new binary
+      this.cachedBinaryPath = null;
+
+      debugLogger.info("SenseVoice binary installed", { path: outputPath });
+      return { success: true, path: outputPath };
+    } catch (error) {
+      debugLogger.error("Failed to build SenseVoice binary", error);
+      if (progressCallback) {
+        progressCallback({ type: "error", percentage: 0, error: error.message });
+      }
+      return { success: false, error: error.message };
+    } finally {
+      this.currentBinaryDownload = null;
+      // Cleanup temp files
+      try {
+        if (fs.existsSync(tmpDir)) {
+          fs.rmSync(tmpDir, { recursive: true, force: true });
+        }
+      } catch {}
+    }
+  }
+
+  cancelBinaryDownload() {
+    if (this.currentBinaryDownload) {
+      this.currentBinaryDownload.abort();
+      this.currentBinaryDownload = null;
+    }
+    return { success: true };
+  }
+
+  getBinDir() {
+    return path.join(this.getModelsDir(), "bin");
+  }
+
   _resolveModelPath(modelPath) {
     const resolved = String(modelPath || process.env.SENSEVOICE_MODEL_PATH || "").trim();
     if (!resolved) {

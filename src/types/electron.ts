@@ -471,6 +471,25 @@ declare global {
         error?: string;
       }>;
 
+      // SenseVoice binary operations
+      checkSenseVoiceBinaryStatus: () => Promise<{ installed: boolean; path: string }>;
+      downloadSenseVoiceBinary: () => Promise<{
+        success: boolean;
+        path?: string;
+        error?: string;
+      }>;
+      onSenseVoiceBinaryDownloadProgress: (
+        callback: (event: any, data: {
+          type: "clone" | "build" | "install" | "complete" | "error";
+          percentage: number;
+          message?: string;
+          error?: string;
+        }) => void
+      ) => () => void;
+      cancelSenseVoiceBinaryDownload: () => Promise<{
+        success: boolean;
+      }>;
+
       // Paraformer operations (external CLI + local ONNX model)
       transcribeLocalParaformer: (
         audioBlob: ArrayBuffer,

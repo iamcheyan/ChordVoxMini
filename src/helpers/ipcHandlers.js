@@ -627,6 +627,33 @@ class IPCHandlers {
       return this.senseVoiceManager.cancelDownload();
     });
 
+    // SenseVoice binary download
+    ipcMain.handle("check-sensevoice-binary-status", async () => {
+      return this.senseVoiceManager.checkBinaryStatus();
+    });
+
+    ipcMain.handle("download-sensevoice-binary", async (event) => {
+      try {
+        const result = await this.senseVoiceManager.downloadBinary(
+          (progressData) => {
+            event.sender.send("sensevoice-binary-download-progress", progressData);
+          }
+        );
+        return result;
+      } catch (error) {
+        event.sender.send("sensevoice-binary-download-progress", {
+          type: "error",
+          percentage: 0,
+          error: error.message,
+        });
+        return { success: false, error: error.message };
+      }
+    });
+
+    ipcMain.handle("cancel-sensevoice-binary-download", async () => {
+      return this.senseVoiceManager.cancelBinaryDownload();
+    });
+
     // Paraformer handlers (external local model via paraformer-main)
     ipcMain.handle("transcribe-local-paraformer", async (event, audioBlob, options = {}) => {
       debugLogger.log("transcribe-local-paraformer called", {

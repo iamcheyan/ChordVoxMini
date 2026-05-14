@@ -8,7 +8,7 @@ import { ProviderTabs } from "./ui/ProviderTabs";
 import ModelCardList from "./ui/ModelCardList";
 import { DownloadProgressBar } from "./ui/DownloadProgressBar";
 import ApiKeyInput from "./ui/ApiKeyInput";
-import { ConfirmDialog } from "./ui/dialog";
+import { ConfirmDialog, AlertDialog } from "./ui/dialog";
 import { useDialogs } from "../hooks/useDialogs";
 import { useModelDownload } from "../hooks/useModelDownload";
 import {
@@ -327,6 +327,8 @@ export default function TranscriptionModelPicker({
   >("checking");
   const [isDownloadingParaformerBinary, setIsDownloadingParaformerBinary] = useState(false);
   const [paraformerBinaryDownloadProgress, setParaformerBinaryDownloadProgress] = useState(0);
+  const [isDownloadingSenseVoiceBinary, setIsDownloadingSenseVoiceBinary] = useState(false);
+  const [senseVoiceBinaryDownloadProgress, setSenseVoiceBinaryDownloadProgress] = useState(0);
   const [internalLocalProvider, setInternalLocalProvider] = useState(selectedLocalProvider);
   const hasLoadedRef = useRef(false);
   const hasLoadedParakeetRef = useRef(false);
@@ -615,6 +617,46 @@ export default function TranscriptionModelPicker({
     }
   }, [isDownloadingParaformerBinary]);
 
+  // SenseVoice binary download progress listener
+  useEffect(() => {
+    if (!useLocalWhisper || internalLocalProvider !== "sensevoice") return;
+
+    const dispose = window.electronAPI?.onSenseVoiceBinaryDownloadProgress?.(
+      (_event: unknown, data: { type: string; percentage: number; message?: string }) => {
+        if (data.type === "complete") {
+          setIsDownloadingSenseVoiceBinary(false);
+          setSenseVoiceBinaryDownloadProgress(0);
+          window.electronAPI?.checkSenseVoiceBinaryStatus?.().then((result) => {
+            setSenseVoiceBinaryStatus(result?.installed ? "installed" : "missing");
+          });
+        } else if (data.type === "error") {
+          setIsDownloadingSenseVoiceBinary(false);
+          setSenseVoiceBinaryDownloadProgress(0);
+        } else {
+          setSenseVoiceBinaryDownloadProgress(data.percentage);
+        }
+      }
+    );
+
+    return () => {
+      dispose?.();
+    };
+  }, [useLocalWhisper, internalLocalProvider]);
+
+  const handleDownloadSenseVoiceBinary = useCallback(async () => {
+    if (isDownloadingSenseVoiceBinary) return;
+    setIsDownloadingSenseVoiceBinary(true);
+    setSenseVoiceBinaryDownloadProgress(0);
+    try {
+      const result = await window.electronAPI?.downloadSenseVoiceBinary?.();
+      if (!result?.success) {
+        console.error("[TranscriptionModelPicker] Failed to download SenseVoice binary:", result?.error);
+      }
+    } catch (error) {
+      console.error("[TranscriptionModelPicker] Failed to download SenseVoice binary:", error);
+    }
+  }, [isDownloadingSenseVoiceBinary]);
+
   useEffect(() => {
     if (useLocalWhisper) return;
 
@@ -645,6 +687,8 @@ export default function TranscriptionModelPicker({
     isInstalling,
     cancelDownload,
     isCancelling,
+    alertDialog: whisperAlertDialog,
+    hideAlertDialog: hideWhisperAlertDialog,
   } = useModelDownload({
     modelType: "whisper",
     onDownloadComplete: loadLocalModels,
@@ -659,6 +703,8 @@ export default function TranscriptionModelPicker({
     isInstalling: isInstallingParakeet,
     cancelDownload: cancelParakeetDownload,
     isCancelling: isCancellingParakeet,
+    alertDialog: parakeetAlertDialog,
+    hideAlertDialog: hideParakeetAlertDialog,
   } = useModelDownload({
     modelType: "parakeet",
     onDownloadComplete: loadParakeetModels,
@@ -673,6 +719,8 @@ export default function TranscriptionModelPicker({
     isInstalling: isInstallingSenseVoice,
     cancelDownload: cancelSenseVoiceDownload,
     isCancelling: isCancellingSenseVoice,
+    alertDialog: senseVoiceAlertDialog,
+    hideAlertDialog: hideSenseVoiceAlertDialog,
   } = useModelDownload({
     modelType: "sensevoice",
     onDownloadComplete: loadSenseVoiceModels,
@@ -687,6 +735,8 @@ export default function TranscriptionModelPicker({
     isInstalling: isInstallingParaformer,
     cancelDownload: cancelParaformerDownload,
     isCancelling: isCancellingParaformer,
+    alertDialog: paraformerAlertDialog,
+    hideAlertDialog: hideParaformerAlertDialog,
   } = useModelDownload({
     modelType: "paraformer",
     onDownloadComplete: loadParaformerModels,
@@ -1465,7 +1515,7 @@ export default function TranscriptionModelPicker({
           </div>
         </div>
 
-        {senseVoiceBinaryStatus === "missing" && (
+        {senseVoiceBinaryStatus === "missing" && !isDownloadingSenseVoiceBinary && (
           <InfoBox variant="warning" className="space-y-2">
             <div className="flex items-start gap-2">
               <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" style={{ color: "var(--color-warning)" }} />
@@ -1475,34 +1525,57 @@ export default function TranscriptionModelPicker({
                 </p>
                 <p className="text-xs text-muted-foreground leading-relaxed">
                   SenseVoice 模型文件（.gguf）需要配套的 C++ 推理引擎 sense-voice-main 才能运行。
-                  由于该引擎暂无官方预编译版本，你需要手动编译或下载。
+                  点击下方按钮自动从源码编译（需要 cmake 和 C++ 编译器）。
                 </p>
                 <div className="flex items-center gap-2 pt-1">
                   <Button
                     type="button"
-                    variant="outline"
                     size="sm"
                     className="h-7 text-xs gap-1"
-                    onClick={() =>
-                      openExternalLink("https://github.com/lovemefan/SenseVoice.cpp")
-                    }
+                    onClick={handleDownloadSenseVoiceBinary}
                   >
-                    <ExternalLink size={12} />
-                    查看编译指南
+                    <Download className="h-3.5 w-3.5" />
+                    从源码编译
                   </Button>
                   <Button
                     type="button"
-                    variant="default"
+                    variant="outline"
                     size="sm"
                     className="h-7 text-xs"
                     onClick={handlePickSenseVoiceBinary}
                   >
-                    选择已编译的二进制
+                    选择已有的二进制
                   </Button>
                 </div>
               </div>
             </div>
           </InfoBox>
+        )}
+
+        {isDownloadingSenseVoiceBinary && (
+          <div className="space-y-1.5 rounded-md border border-border/50 bg-muted/20 px-2.5 py-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-foreground">正在编译推理引擎...</span>
+              <span className="text-[11px] text-muted-foreground">{senseVoiceBinaryDownloadProgress}%</span>
+            </div>
+            <div className="h-1.5 w-full rounded-full bg-border/50 overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-300"
+                style={{
+                  width: `${senseVoiceBinaryDownloadProgress}%`,
+                  background: "var(--color-primary)",
+                }}
+              />
+            </div>
+          </div>
+        )}
+
+        {senseVoiceBinaryStatus === "installed" && (
+          <div className="rounded-md border border-green-500/20 bg-green-500/5 px-2.5 py-2">
+            <p className="text-[11px] text-green-600 dark:text-green-400 leading-relaxed">
+              ✓ 推理引擎已就绪
+            </p>
+          </div>
         )}
 
         <div className="space-y-1.5">
@@ -1824,6 +1897,35 @@ export default function TranscriptionModelPicker({
         cancelText={confirmDialog.cancelText}
         onConfirm={confirmDialog.onConfirm}
         variant={confirmDialog.variant}
+      />
+
+      <AlertDialog
+        open={whisperAlertDialog.open}
+        onOpenChange={(open) => !open && hideWhisperAlertDialog()}
+        title={whisperAlertDialog.title}
+        description={whisperAlertDialog.description}
+        onOk={hideWhisperAlertDialog}
+      />
+      <AlertDialog
+        open={parakeetAlertDialog.open}
+        onOpenChange={(open) => !open && hideParakeetAlertDialog()}
+        title={parakeetAlertDialog.title}
+        description={parakeetAlertDialog.description}
+        onOk={hideParakeetAlertDialog}
+      />
+      <AlertDialog
+        open={senseVoiceAlertDialog.open}
+        onOpenChange={(open) => !open && hideSenseVoiceAlertDialog()}
+        title={senseVoiceAlertDialog.title}
+        description={senseVoiceAlertDialog.description}
+        onOk={hideSenseVoiceAlertDialog}
+      />
+      <AlertDialog
+        open={paraformerAlertDialog.open}
+        onOpenChange={(open) => !open && hideParaformerAlertDialog()}
+        title={paraformerAlertDialog.title}
+        description={paraformerAlertDialog.description}
+        onOk={hideParaformerAlertDialog}
       />
     </div>
   );
